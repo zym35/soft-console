@@ -1,0 +1,233 @@
+/* Soft Console — generated from tokens.json */
+
+:root, [data-theme="graphite-teal"] {
+  --surface: #2a2d32;
+  --surface-up: #303339;
+  --surface-down: #25282c;
+  --well: #23252a;
+  --slot: #181b20;
+  --rule: #1f2226;
+  --shade-hi: #3a3e45b3;
+  --shade-lo: #0f1115f2;
+  --edge-hi: #41464e80;
+  --edge-lo: #1c1e2199;
+  --fill-muted: #4f555f;
+  --text-1: #e4e7ec;
+  --text-2: #b0b6bf;
+  --text-3: #9499a4;
+  --text-off: #60646c;
+  --accent: #26c5a0;
+  --accent-2: #3edaa1;
+  --accent-text: #4bddbb;
+  --accent-ink: #09251e;
+  --accent-glow: #26c5a073;
+  --accent-tint: #26c5a024;
+  --ok: #51cd7a;
+  --warn: #f7b23b;
+  --crit: #f1747c;
+  --info: #5fb2f2;
+  --lcd-glass: #bfc8ac;
+  --lcd-ink: #202919;
+  --lcd-ghost: #20291916;
+  --lcd-shade: #131b0e66;
+  --lcd-sheen: #f8faf461;
+  --vfd-glass: #0e1116;
+  --vfd-glass-2: #142421;
+  --vfd-ghost: #5ebaa513;
+  --vfd-shade: #040507b3;
+  --series-1: var(--accent);
+  --series-2: #a897ed;
+  --series-3: #e48baf;
+  --series-4: #ccb88e;
+  --mute-1: #949ca8;
+  --mute-2: #717884;
+  --mute-3: #5a5f68;
+  --raised-1: 1.65px 1.65px 4.4px #0f1115f2, -1.65px -1.65px 4.4px #3a3e45b3;
+  --raised-2: 3.3px 3.3px 8.8px #0f1115f2, -2.75px -2.75px 7.7px #3a3e45b3;
+  --raised-3: 6.6px 6.6px 16.5px #0f1115f2, -5.5px -5.5px 14.3px #3a3e45b3;
+  --inset-1: inset 1.65px 1.65px 3.85px #0f1115f2, inset -1.65px -1.65px 3.85px #3a3e45b3;
+  --inset-2: inset 3.3px 3.3px 7.7px #0f1115f2, inset -2.75px -2.75px 6.6px #3a3e45b3;
+  --btn-rest: 1.65px 1.65px 4.4px #0f1115f2, -1.65px -1.65px 4.4px #3a3e45b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-hover: 2.2px 2.2px 6.05px #0f1115f2, -2.2px -2.2px 6.05px #3a3e45b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-press: 0 0 0 #0000, 0 0 0 #0000, inset 1.38px 1.38px 3.3px #0f1115f2, inset -1.38px -1.38px 3.3px #3a3e45b3;
+  --btn-flat: 0 0 0 #0000, 0 0 0 #0000, inset 0 0 0 #0000, inset 0 0 0 #0000;
+}
+
+[data-theme="carbon-cyan"] {
+  --surface: #222426;
+  --surface-up: #282a2d;
+  --surface-down: #1d1f20;
+  --well: #1a1c1e;
+  --slot: #101214;
+  --rule: #17181a;
+  --shade-hi: #323639b3;
+  --shade-lo: #070809f2;
+  --edge-hi: #3a3d4180;
+  --edge-lo: #13141699;
+  --fill-muted: #484d51;
+  --text-1: #e4e8ec;
+  --text-2: #b0b8bf;
+  --text-3: #949ca4;
+  --text-off: #60666c;
+  --accent: #19c7e6;
+  --accent-2: #43e7ea;
+  --accent-text: #51d4ec;
+  --accent-ink: #092125;
+  --accent-glow: #19c7e673;
+  --accent-tint: #19c7e624;
+  --vfd-glass: #0e1216;
+  --vfd-glass-2: #142224;
+  --vfd-ghost: #5eacba13;
+  --vfd-shade: #040507b3;
+  --series-1: var(--accent);
+  --series-2: #b49bed;
+  --series-3: #e48baf;
+  --series-4: #ccb88e;
+  --mute-1: #949ea8;
+  --mute-2: #717a84;
+  --mute-3: #5a6168;
+  --raised-1: 1.65px 1.65px 4.4px #070809f2, -1.65px -1.65px 4.4px #323639b3;
+  --raised-2: 3.3px 3.3px 8.8px #070809f2, -2.75px -2.75px 7.7px #323639b3;
+  --raised-3: 6.6px 6.6px 16.5px #070809f2, -5.5px -5.5px 14.3px #323639b3;
+  --inset-1: inset 1.65px 1.65px 3.85px #070809f2, inset -1.65px -1.65px 3.85px #323639b3;
+  --inset-2: inset 3.3px 3.3px 7.7px #070809f2, inset -2.75px -2.75px 6.6px #323639b3;
+  --btn-rest: 1.65px 1.65px 4.4px #070809f2, -1.65px -1.65px 4.4px #323639b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-hover: 2.2px 2.2px 6.05px #070809f2, -2.2px -2.2px 6.05px #323639b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-press: 0 0 0 #0000, 0 0 0 #0000, inset 1.38px 1.38px 3.3px #070809f2, inset -1.38px -1.38px 3.3px #323639b3;
+}
+
+[data-theme="basalt-lime"] {
+  --surface: #282b26;
+  --surface-up: #2f322c;
+  --surface-down: #232622;
+  --well: #21231f;
+  --slot: #171915;
+  --rule: #1d1f1c;
+  --shade-hi: #3a3e37b3;
+  --shade-lo: #0c0e0bf2;
+  --edge-hi: #42463e80;
+  --edge-lo: #191b1899;
+  --fill-muted: #51564d;
+  --text-1: #e7ece4;
+  --text-2: #b6bfb0;
+  --text-3: #9aa494;
+  --text-off: #656c60;
+  --accent: #b2dd3c;
+  --accent-2: #d2e363;
+  --accent-text: #c6e670;
+  --accent-ink: #1d2509;
+  --accent-glow: #b2dd3c73;
+  --accent-tint: #b2dd3c24;
+  --vfd-glass: #11160e;
+  --vfd-glass-2: #202414;
+  --vfd-ghost: #a2ba5e13;
+  --vfd-shade: #050704b3;
+  --series-1: var(--accent);
+  --series-2: #aa9aea;
+  --series-3: #e28daf;
+  --series-4: #72caca;
+  --mute-1: #9ca894;
+  --mute-2: #798471;
+  --mute-3: #60685a;
+  --raised-1: 1.65px 1.65px 4.4px #0c0e0bf2, -1.65px -1.65px 4.4px #3a3e37b3;
+  --raised-2: 3.3px 3.3px 8.8px #0c0e0bf2, -2.75px -2.75px 7.7px #3a3e37b3;
+  --raised-3: 6.6px 6.6px 16.5px #0c0e0bf2, -5.5px -5.5px 14.3px #3a3e37b3;
+  --inset-1: inset 1.65px 1.65px 3.85px #0c0e0bf2, inset -1.65px -1.65px 3.85px #3a3e37b3;
+  --inset-2: inset 3.3px 3.3px 7.7px #0c0e0bf2, inset -2.75px -2.75px 6.6px #3a3e37b3;
+  --btn-rest: 1.65px 1.65px 4.4px #0c0e0bf2, -1.65px -1.65px 4.4px #3a3e37b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-hover: 2.2px 2.2px 6.05px #0c0e0bf2, -2.2px -2.2px 6.05px #3a3e37b3, inset 0 0 0 #0000, inset 0 0 0 #0000;
+  --btn-press: 0 0 0 #0000, 0 0 0 #0000, inset 1.38px 1.38px 3.3px #0c0e0bf2, inset -1.38px -1.38px 3.3px #3a3e37b3;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --ctl-h: 44px;
+  --ctl-h-compact: 36px;
+  --pad-panel: 22px;
+  --pad-panel-compact: 16px;
+  --gap: 28px;
+  --gap-compact: 18px;
+  --row-py: 12px;
+  --row-py-compact: 8px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --dur-press: 220ms;
+  --dur-ui: 250ms;
+  --dur-value: 900ms;
+  --dur-enter: 520ms;
+  --ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --font-ui: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.t-display {
+  font-family: var(--font-ui);
+  font-size: 44px;
+  line-height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.66px;
+}
+
+.t-title {
+  font-family: var(--font-ui);
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 600;
+}
+
+.t-heading {
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.t-body {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+}
+
+.t-label {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 1.38px;
+}
+
+.t-readout {
+  font-family: var(--font-data);
+  font-size: 40px;
+  line-height: 44px;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+}
+
+.t-kpi {
+  font-family: var(--font-data);
+  font-size: 30px;
+  line-height: 33px;
+  font-weight: 500;
+  letter-spacing: -0.6px;
+}
+
+.t-data {
+  font-family: var(--font-data);
+  font-size: 13.5px;
+  line-height: 20px;
+  font-weight: 400;
+}
+

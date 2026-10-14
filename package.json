@@ -1,0 +1,24 @@
+{
+  "name": "soft-console",
+  "version": "1.0.0",
+  "description": "A dark neumorphic design system for technical dashboards: tokens, CSS components and instrument helpers with no dependencies.",
+  "license": "MIT",
+  "author": "King Zhou",
+  "homepage": "https://github.com/zym35/soft-console#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/zym35/soft-console.git" },
+  "bugs": { "url": "https://github.com/zym35/soft-console/issues" },
+  "keywords": ["design-system", "neumorphism", "soft-ui", "dark-mode", "dashboard", "css", "design-tokens"],
+  "main": "dist/soft-console.js",
+  "style": "dist/soft-console.css",
+  "files": ["dist", "docs/guidelines.md", "docs/components"],
+  "exports": {
+    ".": "./dist/soft-console.js",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./soft-console.css": "./dist/soft-console.css",
+    "./soft-console.js": "./dist/soft-console.js"
+  },
+  "scripts": {
+    "build:tokens": "node tools/build-tokens.mjs"
+  }
+}
