@@ -243,6 +243,16 @@
 
 /* ---------- data table ---------- */
 .sc-table-wrap { max-width: 100%; overflow-x: auto; }
+
+/* thin scrollbars in system colors for the kit's own scroll areas.
+   WebKit/Blink get a styled pill thumb; Firefox (no ::-webkit-scrollbar) gets the standard thin bar. */
+@supports not selector(::-webkit-scrollbar) {
+  .sc-table-wrap, .sc-select__list { scrollbar-width: thin; scrollbar-color: var(--fill-muted) transparent; }
+}
+.sc-table-wrap::-webkit-scrollbar, .sc-select__list::-webkit-scrollbar { width: 8px; height: 8px; }
+.sc-table-wrap::-webkit-scrollbar-track, .sc-select__list::-webkit-scrollbar-track { background: transparent; }
+.sc-table-wrap::-webkit-scrollbar-thumb, .sc-select__list::-webkit-scrollbar-thumb { background: var(--fill-muted); border: 2px solid var(--surface); border-radius: var(--radius-pill); }
+.sc-table-wrap::-webkit-scrollbar-thumb:hover, .sc-select__list::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 .sc-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
 .sc-table th { padding: 0 14px 12px; text-align: left; font: 600 11px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
 .sc-table td { padding: var(--row-py) 14px; border-top: 1px solid var(--rule); vertical-align: middle; }
