@@ -1,92 +1,28 @@
-![Soft Console](docs/images/cover.png)
+# Soft Console
 
-A dark neumorphic design system for technical dashboards. One soft material shaped into an instrument panel: height carries meaning, a single accent marks values and the main action, and a small hardware vocabulary does the talking. That vocabulary is segment displays, LEDs, tick-marked dials and a jog wheel.
+A dark neumorphic design system for technical dashboards. Three plain files with no dependencies and nothing to build.
 
-It is three plain files: design tokens, a component stylesheet and a small helper script with no dependencies. It works with any framework, or with none. There is nothing to install or build.
+### ▶ [Live demo](https://zym35.github.io/soft-console/)
 
-**[Live demo](https://zym35.github.io/soft-console/)**
-
-![Instruments](docs/images/instruments.png)
+![Soft Console components](docs/images/kit.png)
 
 ## Use it
 
-Copy the `dist/` folder into your project, then link the three files in this order:
+Copy `dist/` into your project and link the files:
 
 ```html
 <link rel="stylesheet" href="dist/tokens.css">
 <link rel="stylesheet" href="dist/soft-console.css">
 <script src="dist/soft-console.js"></script>
+<script>SoftConsole.init(document.body);</script>
 ```
 
-Write markup with the `sc-` classes and call `SoftConsole.init()`:
+Set a palette with `data-theme` on `<html>`: `graphite-teal` (default), `carbon-cyan` or `basalt-lime`. Add `data-density="compact"` for dense screens.
 
-```html
-<html data-theme="graphite-teal">
-  <body class="sc-root">
-    <section class="sc-panel sc-raised-2">
-      <div class="sc-panel__head"><h3 class="sc-panel__title">Load</h3><span class="sc-label">All nodes</span></div>
-      <div data-sc-gauge="72" data-label="Cluster load"></div>
-    </section>
-    <script>SoftConsole.init(document.body);</script>
-  </body>
-</html>
-```
+## Docs
 
-`init` mounts the icon sprite and wires selection groups, switches, toggles and sliders. It also draws every `data-sc-seg`, `data-sc-gauge`, `data-sc-spark`, `data-sc-bars`, `data-sc-jog` and `data-sc-count` element. To draw from live data, call `SoftConsole.segment`, `.gauge`, `.spark`, `.lines`, `.bars` and `.jog` directly.
-
-## Palettes and density
-
-Three palettes ship as themes. Set one on `<html>` or from a preferences screen:
-
-| `data-theme` | Name | Character |
-| --- | --- | --- |
-| `graphite-teal` | Graphite · Teal | Default. Neutral cool graphite with a teal signal. |
-| `carbon-cyan` | Carbon · Cyan | Darker and almost neutral. Crisp, high-tech. |
-| `basalt-lime` | Basalt · Lime | Olive-black with an LCD-green signal. |
-
-```js
-SoftConsole.setTheme('carbon-cyan');
-SoftConsole.setDensity('compact'); // 36px controls for dense ops screens; 'comfortable' (44px) is the default
-```
-
-Every text color meets WCAG AA (4.5:1) on the surface in all three palettes. The contrast table is in the [guidelines](docs/guidelines.md#text).
-
-## Components
-
-| Group | Components |
-| --- | --- |
-| Foundations | [Surface](docs/components/Surface.md), [Panel](docs/components/Panel.md) |
-| Actions | [Button](docs/components/Button.md), [IconButton](docs/components/IconButton.md) |
-| Selection | [SegmentedControl](docs/components/SegmentedControl.md), [Switch](docs/components/Switch.md), [Check](docs/components/Check.md) |
-| Inputs | [Slider](docs/components/Slider.md), [Field](docs/components/Field.md), [JogWheel](docs/components/JogWheel.md) |
-| Status | [StatusChip](docs/components/StatusChip.md), [AlertList](docs/components/AlertList.md) |
-| Instruments | [SegmentDisplay](docs/components/SegmentDisplay.md), [DialGauge](docs/components/DialGauge.md), [Meter](docs/components/Meter.md) |
-| Data | [KpiTile](docs/components/KpiTile.md), [BarChart](docs/components/BarChart.md), [LineChart](docs/components/LineChart.md), [DataTable](docs/components/DataTable.md) |
-
-See every component live, with the palette and density switches, in the [demo](https://zym35.github.io/soft-console/). The same page is [`examples/index.html`](examples/index.html), which you can open locally.
-
-![Components](docs/images/components.png)
-
-## The rules in brief
-
-1. **Raised means you can press it**, or it is a panel that holds things.
-2. **Pressed in means on.** Selected items sink in, turn accent and get an accent underline.
-3. **Recessed means data.** Values, inputs and charts sit in wells, never on bumps.
-4. **Accent means value or the main action.** One primary button per view.
-5. **Every shape has a hairline edge**, so shapes stay readable on dim screens.
-
-The full brand book (color roles, type, shape, density, states, motion, content and iconography) is in [docs/guidelines.md](docs/guidelines.md).
-
-## Customizing tokens
-
-Every token is a CSS custom property in [`dist/tokens.css`](dist/tokens.css), with one block per palette (`[data-theme="…"]`). Edit the values there. [`dist/tokens.json`](dist/tokens.json) holds the same tokens as data, with a usage note on each.
-
-## Notes
-
-- Fonts: Manrope (interface) and IBM Plex Mono (numbers) load from Google Fonts through an `@import` at the top of `soft-console.css`. To self-host, remove that line and declare the two families yourself.
-- Motion respects `prefers-reduced-motion`: gauges, count-ups, chart reveals and entrance animations switch off.
-- Dark only by design. There is no light theme.
-- Browser support: current Chrome, Edge, Firefox and Safari. The kit uses `color-mix()`, `@property` and `:focus-visible`.
+- [Guidelines](docs/guidelines.md): principles, color, type, motion and copy
+- [Components](docs/components): markup and usage for all 19 components
 
 ## License
 

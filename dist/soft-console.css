@@ -31,6 +31,7 @@
 
 /* ---------- panel ---------- */
 .sc-panel { display: grid; gap: calc(var(--pad-panel) - 4px); align-content: start; min-width: 0; padding: var(--pad-panel); border-radius: var(--radius-xl); }
+.sc-panel > * { min-width: 0; } /* wide content (tables, charts) scrolls inside the panel instead of pushing it wider */
 .sc-panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
 .sc-panel__title { margin: 0; font: 600 17px/1.4 var(--font-ui); }
 .sc-label { font: 600 11.5px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
@@ -111,6 +112,26 @@
 .sc-field input::placeholder { color: var(--text-3); }
 .sc-field select option { background: var(--surface); color: var(--text-1); }
 .sc-field__unit { font: 500 13px var(--font-data); color: var(--text-3); }
+
+/* ---------- select: SoftConsole.init upgrades a native <select> in .sc-field into this listbox ---------- */
+@keyframes sc-pop { from { opacity: 0; transform: translateY(-4px); } }
+.sc-select { position: relative; padding: 0; }
+.sc-select__native { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.sc-select__trigger { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: none; border: 0; border-radius: inherit; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; }
+.sc-select__trigger:focus-visible { outline: none; }
+.sc-select__trigger:disabled { color: var(--text-off); cursor: not-allowed; }
+.sc-select__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-select__chev { color: var(--text-3); transition: transform var(--dur-ui) var(--ease-standard), color var(--dur-ui); }
+.sc-select.is-open .sc-select__chev { transform: rotate(180deg); color: var(--accent-text); }
+.sc-select__list { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 30; display: grid; gap: 2px; max-height: 280px; overflow-y: auto; margin: 0; padding: 5px; list-style: none; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--raised-2), 0 16px 32px -12px var(--shade-lo); animation: sc-pop var(--dur-ui) var(--ease-standard); }
+.sc-select__list[hidden] { display: none; }
+.sc-select.is-up .sc-select__list { top: auto; bottom: calc(100% + 8px); }
+.sc-select__option { position: relative; display: flex; align-items: center; min-height: calc(var(--ctl-h) - 8px); padding: 0 36px 0 12px; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-2); cursor: pointer; }
+.sc-select__option.is-active { background: var(--surface-up); color: var(--text-1); }
+.sc-select__option[aria-selected="true"] { background: var(--surface); color: var(--accent-text); box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+.sc-select__option[aria-selected="true"]::after { content: ""; position: absolute; right: 14px; top: 50%; width: 9px; height: 4.5px; margin-top: -4px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
+.sc-select__option[aria-disabled="true"] { color: var(--text-off); cursor: not-allowed; }
+.sc-select__group { padding: 8px 12px 4px; font: 600 10.5px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
 
 /* ---------- status: chip, LED ---------- */
 .sc-chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font: 600 12.5px/1 var(--font-ui); color: var(--text-2); box-shadow: var(--btn-press); }
@@ -221,15 +242,15 @@
 .sc-sev--ok { --c: var(--ok); } .sc-sev--warn { --c: var(--warn); } .sc-sev--crit { --c: var(--crit); } .sc-sev--info { --c: var(--info); }
 
 /* ---------- data table ---------- */
-.sc-table-wrap { overflow-x: auto; }
+.sc-table-wrap { max-width: 100%; overflow-x: auto; }
 .sc-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
-.sc-table th { padding: 0 14px 12px; text-align: left; font: 600 11px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
-.sc-table td { padding: var(--row-py) 14px; border-top: 1px solid var(--rule); }
+.sc-table th { padding: 0 14px 12px; text-align: left; font: 600 11px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+.sc-table td { padding: var(--row-py) 14px; border-top: 1px solid var(--rule); vertical-align: middle; }
 .sc-table tbody tr { transition: background-color .15s; }
 .sc-table tbody tr:hover { background: var(--surface-down); }
-.sc-table .num { text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
-.sc-table .key { font-family: var(--font-data); font-weight: 500; }
-.sc-status { display: inline-flex; align-items: center; gap: 9px; }
+.sc-table .num { text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sc-table .key { font-family: var(--font-data); font-weight: 500; white-space: nowrap; }
+.sc-status { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
 
 /* ---------- motion ---------- */
 @keyframes sc-enter { from { opacity: .3; transform: translateY(10px); } }
