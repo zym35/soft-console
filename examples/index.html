@@ -10,8 +10,8 @@
 <style>
   .page { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 80px; display: grid; gap: var(--space-8); }
   .top { position: sticky; top: 0; z-index: 5; background: var(--surface); box-shadow: 0 14px 28px -18px var(--shade-lo); }
-  .top .bar { max-width: 1240px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
-  .brand { font: 700 17px/1.2 var(--font-ui); }
+  .top .bar { max-width: 1240px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  .brand { margin-right: auto; font: 700 17px/1.2 var(--font-ui); }
   .brand span { display: block; font: 500 11px/1.4 var(--font-data); color: var(--text-3); }
   .prefs { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
   .prefs > div { display: flex; gap: 8px; align-items: center; }
@@ -26,12 +26,18 @@
   .doc { font: 600 12px var(--font-ui); color: var(--accent-text); text-decoration: none; }
   .doc:hover { text-decoration: underline; }
   a { color: var(--accent-text); }
+  .cta { text-decoration: none; }
+  .cta .sc-ic { width: 16px; height: 16px; }
+  @media (max-width: 760px) {
+    .top { position: static; }
+    .prefs { order: 3; width: 100%; }
+  }
 </style>
 </head>
 <body class="sc-root">
 <header class="top">
   <div class="bar">
-    <div class="brand">Soft Console<span>v1.0.0 · components</span></div>
+    <div class="brand">Soft Console<span>v1.1.0 · components</span></div>
     <div class="prefs">
       <div><span class="sc-label">Palette</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="palette" role="group" aria-label="Palette">
@@ -42,6 +48,7 @@
           <button type="button" value="comfortable" aria-pressed="true">Comfortable</button><button type="button" value="compact" aria-pressed="false">Compact</button>
         </div></div>
     </div>
+    <a class="sc-btn sc-btn--primary sc-btn--sm cta" href="https://github.com/zym35/soft-console" target="_blank" rel="noopener"><span>View on GitHub</span><svg class="sc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
   </div>
 </header>
 <main class="page">
