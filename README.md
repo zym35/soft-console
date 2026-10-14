@@ -2,27 +2,23 @@
 
 A dark neumorphic design system for technical dashboards. One soft material shaped into an instrument panel: height carries meaning, a single accent marks values and the main action, and a small hardware vocabulary does the talking. That vocabulary is segment displays, LEDs, tick-marked dials and a jog wheel.
 
-It ships as three plain files: design tokens, a component stylesheet and a small helper script with no dependencies. It works with any framework, or with none.
+It is three plain files: design tokens, a component stylesheet and a small helper script with no dependencies. It works with any framework, or with none. There is nothing to install or build.
+
+**[Live demo](https://zym35.github.io/soft-console/)**
 
 ![Instruments](docs/images/instruments.png)
 
-## Quick start
+## Use it
 
-Load the three files in this order. Pin the version in the URL.
+Copy the `dist/` folder into your project, then link the three files in this order:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zym35/soft-console@v1.0.0/dist/tokens.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zym35/soft-console@v1.0.0/dist/soft-console.css">
-<script src="https://cdn.jsdelivr.net/gh/zym35/soft-console@v1.0.0/dist/soft-console.js"></script>
+<link rel="stylesheet" href="dist/tokens.css">
+<link rel="stylesheet" href="dist/soft-console.css">
+<script src="dist/soft-console.js"></script>
 ```
 
-Or install from GitHub and import the files from `node_modules/soft-console/dist/`:
-
-```bash
-npm install github:zym35/soft-console#v1.0.0
-```
-
-You can also copy `dist/` into your project. Then write markup with the `sc-` classes and call `SoftConsole.init()`:
+Write markup with the `sc-` classes and call `SoftConsole.init()`:
 
 ```html
 <html data-theme="graphite-teal">
@@ -67,7 +63,7 @@ Every text color meets WCAG AA (4.5:1) on the surface in all three palettes. The
 | Instruments | [SegmentDisplay](docs/components/SegmentDisplay.md), [DialGauge](docs/components/DialGauge.md), [Meter](docs/components/Meter.md) |
 | Data | [KpiTile](docs/components/KpiTile.md), [BarChart](docs/components/BarChart.md), [LineChart](docs/components/LineChart.md), [DataTable](docs/components/DataTable.md) |
 
-Open [`examples/index.html`](examples/index.html) in a browser to see every component live, with the palette and density switches.
+See every component live, with the palette and density switches, in the [demo](https://zym35.github.io/soft-console/). The same page is [`examples/index.html`](examples/index.html), which you can open locally.
 
 ![Components](docs/images/components.png)
 
@@ -83,13 +79,7 @@ The full brand book (color roles, type, shape, density, states, motion, content 
 
 ## Customizing tokens
 
-Every color, shadow and length is derived from a few numbers per palette in [`tools/build-tokens.mjs`](tools/build-tokens.mjs). Change a palette's hue, saturation and lightness there, or add a new palette, then rebuild:
-
-```bash
-npm run build:tokens
-```
-
-This rewrites `dist/tokens.css` and `dist/tokens.json` and prints a contrast report for every palette. Node 18 or newer is required.
+Every token is a CSS custom property in [`dist/tokens.css`](dist/tokens.css), with one block per palette (`[data-theme="…"]`). Edit the values there. [`dist/tokens.json`](dist/tokens.json) holds the same tokens as data, with a usage note on each.
 
 ## Notes
 
