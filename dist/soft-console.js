@@ -234,6 +234,166 @@
     return { get value() { return value; }, set: function (v) { set(v, (v - value) * 6); } };
   }
 
+  /* ---------- select: a styled listbox over a native <select> ---------- */
+  var selectSeq = 0;
+  function select(native) {
+    if (!native || native.tagName !== 'SELECT') throw new Error('SoftConsole.select needs a <select> element');
+    if (native.dataset.scBound) return native.scSelect;
+    native.dataset.scBound = '1';
+    var field = native.closest('.sc-field') || native.parentNode;
+    var id = 'sc-select-' + (selectSeq++);
+    var label = native.getAttribute('aria-label') || (native.labels && native.labels[0] ? native.labels[0].textContent.trim() : '');
+    field.classList.add('sc-select');
+    native.classList.add('sc-select__native');
+    native.tabIndex = -1;
+    $$('[data-sc-icon="chevron"]', field).forEach(function (el) { el.remove(); });
+
+    var trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'sc-select__trigger';
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-controls', id);
+    trigger.disabled = native.disabled;
+    trigger.innerHTML = '<span class="sc-select__value"></span><svg class="sc-ic sc-select__chev" aria-hidden="true"><use href="#sc-i-chevron"/></svg>';
+    var list = document.createElement('ul');
+    list.className = 'sc-select__list';
+    list.id = id;
+    list.setAttribute('role', 'listbox');
+    if (label) list.setAttribute('aria-label', label);
+    list.hidden = true;
+    field.insertBefore(trigger, native);
+    field.appendChild(list);
+
+    var opts = [], active = -1, typed = '', typedAt = 0;
+    function add(o) {
+      var li = document.createElement('li');
+      li.className = 'sc-select__option';
+      li.id = id + '-' + opts.length;
+      li.setAttribute('role', 'option');
+      li.dataset.index = opts.length;
+      li.textContent = o.textContent;
+      if (o.disabled) li.setAttribute('aria-disabled', 'true');
+      list.appendChild(li);
+      opts.push({ el: li, opt: o });
+    }
+    function build() {
+      list.innerHTML = '';
+      opts = [];
+      Array.prototype.forEach.call(native.children, function (child) {
+        if (child.tagName !== 'OPTGROUP') { add(child); return; }
+        var g = document.createElement('li');
+        g.className = 'sc-select__group';
+        g.setAttribute('role', 'presentation');
+        g.textContent = child.label;
+        list.appendChild(g);
+        Array.prototype.forEach.call(child.children, add);
+      });
+    }
+    function sync() {
+      var sel = native.selectedIndex;
+      opts.forEach(function (x, i) { x.el.setAttribute('aria-selected', String(i === sel)); });
+      var text = sel >= 0 ? native.options[sel].textContent : '';
+      trigger.firstChild.textContent = text;
+      trigger.setAttribute('aria-label', (label ? label + ': ' : '') + text);
+      trigger.disabled = native.disabled;
+    }
+    function setActive(i) {
+      if (opts[active]) opts[active].el.classList.remove('is-active');
+      active = i;
+      if (!opts[i]) { trigger.removeAttribute('aria-activedescendant'); return; }
+      var el = opts[i].el;
+      el.classList.add('is-active');
+      trigger.setAttribute('aria-activedescendant', el.id);
+      if (el.offsetTop < list.scrollTop) list.scrollTop = el.offsetTop - 5;
+      else if (el.offsetTop + el.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = el.offsetTop + el.offsetHeight - list.clientHeight + 5;
+    }
+    function move(from, step) {
+      for (var i = from + step; i >= 0 && i < opts.length; i += step) { if (!opts[i].opt.disabled) return i; }
+      return from;
+    }
+    function outside(e) { if (!field.contains(e.target)) close(); }
+    function open() {
+      if (trigger.disabled || !list.hidden) return;
+      list.hidden = false;
+      field.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+      var rect = field.getBoundingClientRect(), below = window.innerHeight - rect.bottom;
+      field.classList.toggle('is-up', below < Math.min(list.scrollHeight, 280) + 12 && rect.top > below);
+      setActive(native.selectedIndex >= 0 ? native.selectedIndex : move(-1, 1));
+      document.addEventListener('pointerdown', outside, true);
+    }
+    function close() {
+      if (list.hidden) return;
+      list.hidden = true;
+      field.classList.remove('is-open', 'is-up');
+      trigger.setAttribute('aria-expanded', 'false');
+      setActive(-1);
+      document.removeEventListener('pointerdown', outside, true);
+    }
+    function choose(i) {
+      if (!opts[i] || opts[i].opt.disabled) return;
+      var changed = native.selectedIndex !== i;
+      native.selectedIndex = i;
+      sync();
+      close();
+      trigger.focus();
+      if (changed) native.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function typeahead(key, isOpen) {
+      var now = Date.now();
+      typed = (now - typedAt > 600 ? '' : typed) + key.toLowerCase();
+      typedAt = now;
+      var start = isOpen ? active : native.selectedIndex, n = opts.length;
+      for (var k = 0; k < n; k++) {
+        var i = ((start < 0 ? 0 : start) + k + (typed.length > 1 ? 0 : 1)) % n;
+        if (!opts[i].opt.disabled && opts[i].el.textContent.toLowerCase().indexOf(typed) === 0) {
+          if (isOpen) setActive(i); else choose(i);
+          return;
+        }
+      }
+    }
+
+    trigger.addEventListener('click', function () { if (list.hidden) open(); else close(); });
+    trigger.addEventListener('keydown', function (e) {
+      var isOpen = !list.hidden;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!isOpen) open(); else setActive(move(active, e.key === 'ArrowDown' ? 1 : -1));
+      } else if ((e.key === 'Home' || e.key === 'End') && isOpen) {
+        e.preventDefault();
+        setActive(e.key === 'Home' ? move(-1, 1) : move(opts.length, -1));
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (isOpen) choose(active); else open();
+      } else if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        close();
+      } else if (e.key === 'Tab' && isOpen) {
+        choose(active);
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        typeahead(e.key, isOpen);
+      }
+    });
+    list.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    list.addEventListener('click', function (e) {
+      var li = e.target.closest('.sc-select__option');
+      if (li) choose(+li.dataset.index);
+    });
+    list.addEventListener('pointermove', function (e) {
+      var li = e.target.closest('.sc-select__option');
+      if (li && +li.dataset.index !== active && li.getAttribute('aria-disabled') !== 'true') setActive(+li.dataset.index);
+    });
+    native.addEventListener('focus', function () { trigger.focus(); });
+    native.addEventListener('change', sync);
+
+    build();
+    sync();
+    native.scSelect = { open: open, close: close, refresh: function () { build(); sync(); } };
+    return native.scSelect;
+  }
+
   /* ---------- icons: outline, 24px grid, 1.8 stroke ---------- */
   var ICONS = {
     home: '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
@@ -299,6 +459,7 @@
       if (!el.dataset.scBound) { el.dataset.scBound = '1'; el.addEventListener('input', sync); }
       sync();
     });
+    $$('.sc-field select', r).forEach(select);
     $$('[data-sc-seg]', r).forEach(function (el) { segment(el, el.getAttribute('data-sc-seg'), num(el.dataset.digits, 0)); });
     $$('[data-sc-gauge]', r).forEach(function (el) {
       gauge(el, num(el.getAttribute('data-sc-gauge'), 0), { min: num(el.dataset.min, 0), max: num(el.dataset.max, 100), unit: el.dataset.unit, label: el.dataset.label });
@@ -322,7 +483,7 @@
   }
 
   window.SoftConsole = {
-    version: '1.0.0',
+    version: '1.1.0',
     themes: THEMES.slice(),
     init: init,
     setTheme: setTheme,
@@ -333,6 +494,7 @@
     lines: lines,
     bars: bars,
     jog: jog,
+    select: select,
     countUp: countUp,
     icon: icon,
     mountIcons: mountIcons,

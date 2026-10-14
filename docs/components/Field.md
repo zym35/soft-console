@@ -9,6 +9,13 @@ Fields are recessed inputs for text, numbers with units, and selects.
 ```
 Every input needs a visible label or an `aria-label`. Numbers go in `.sc-mono` with the unit as `.sc-field__unit`.
 
+## Selects
+Put a native `<select>` in a field. `SoftConsole.init` replaces its option list with a Soft Console listbox: a raised panel where the selected option presses in with a check mark.
+```html
+<div class="sc-field sc-inset-1"><select aria-label="Region"><option>eu-central · Frankfurt</option><option>us-east · Virginia</option></select></div>
+```
+The native select stays in the page, so forms submit it and it fires `change` as usual. The list opens with a click, Enter, Space or the arrow keys. Arrows, Home and End move through it, typing jumps to a matching option, Enter picks, and Escape closes. Disabled options and `<optgroup>` labels carry over. If you change the options later, call `SoftConsole.select(selectEl).refresh()`.
+
 ## Do and don't
 - Do show units inside the field, after the value.
 - Do use placeholders only as examples, never as the label.
