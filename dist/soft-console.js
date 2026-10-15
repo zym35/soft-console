@@ -407,6 +407,9 @@
     plus: '<path d="M12 5v14M5 12h14"/>',
     minus: '<path d="M5 12h14"/>',
     chevron: '<path d="m7 10 5 5 5-5"/>',
+    'chevron-right': '<path d="m10 7 5 5-5 5"/>',
+    info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8h.01"/>',
+    close: '<path d="M6 6l12 12M18 6 6 18"/>',
     bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
     server: '<rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/>',
   };

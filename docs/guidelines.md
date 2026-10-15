@@ -118,7 +118,7 @@ Motion is expressive but functional. Durations: `dur-press` for press travel, `d
 
 ## Iconography
 
-Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with `currentColor`. The kit ships a small set (home, grid, chart, bell, gear, search, power, refresh, plus, minus, chevron, bolt, server): call `SoftConsole.mountIcons()` once, then use `SoftConsole.icon('bell')` or `<svg class="sc-ic"><use href="#sc-i-bell"/></svg>`. For anything else, use an outline set drawn on a 24px grid and set its stroke to 1.8. Never fill icons, and never use emoji as icons.
+Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with `currentColor`. The kit ships a small set (home, grid, chart, bell, gear, search, power, refresh, plus, minus, chevron, chevron-right, info, close, bolt, server): call `SoftConsole.mountIcons()` once, then use `SoftConsole.icon('bell')` or `<svg class="sc-ic"><use href="#sc-i-bell"/></svg>`. For anything else, use an outline set drawn on a 24px grid and set its stroke to 1.8. Never fill icons, and never use emoji as icons.
 
 ## Using the kit
 
