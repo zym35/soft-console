@@ -293,19 +293,6 @@
 .sc-gauge__hub small { margin-left: 1px; font-size: 13px; color: var(--text-2); }
 .sc-gauge__hub > span { font: 600 9.5px/1.2 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
 
-/* ---------- bar chart ---------- */
-.sc-bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; padding-top: 50px; }
-.sc-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
-.sc-bar:focus-visible { outline: none; }
-.sc-bar:focus-visible .sc-bar__track { outline: 2px solid var(--accent); outline-offset: 3px; }
-.sc-bar__track { position: relative; width: 16px; height: 150px; border-radius: var(--radius-pill); }
-.sc-bar__fill { position: absolute; left: 4px; right: 4px; bottom: 4px; height: calc((100% - 8px) * var(--v) / 100); border-radius: var(--radius-pill); background: var(--fill-muted); transform-origin: bottom; transition: background .2s, box-shadow .2s; animation: sc-grow-y var(--dur-value) var(--ease-standard) calc(var(--i, 0) * 60ms) backwards; }
-.sc-bar[aria-pressed="true"] .sc-bar__fill { background: linear-gradient(180deg, var(--accent-2), var(--accent)); box-shadow: 0 0 12px var(--accent-glow); }
-.sc-bar__tip { position: absolute; left: 50%; bottom: calc((100% - 8px) * var(--v) / 100 + 12px); width: 40px; height: 40px; margin-left: -20px; display: grid; place-items: center; border-radius: 50%; font: 500 13px var(--font-data); opacity: 0; transform: translateY(6px) scale(.6); transition: var(--dur-ui) var(--ease-standard); pointer-events: none; }
-.sc-bar[aria-pressed="true"] .sc-bar__tip { opacity: 1; transform: none; }
-.sc-bar__label { font: 600 11px var(--font-data); color: var(--text-3); }
-.sc-bar[aria-pressed="true"] .sc-bar__label { color: var(--accent-text); }
-
 /* ---------- meter ---------- */
 .sc-rails { display: grid; gap: var(--space-4); }
 .sc-rail { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px 10px; }
@@ -420,13 +407,11 @@
 @keyframes sc-enter { from { opacity: .3; transform: translateY(10px); } }
 @keyframes sc-sweep { from { stroke-dashoffset: 1; } }
 @keyframes sc-reveal { from { clip-path: inset(0 100% 0 0); } }
-@keyframes sc-grow-y { from { transform: scaleY(0); } }
 @keyframes sc-grow-x { from { transform: scaleX(0); } }
 @keyframes sc-fade { from { opacity: 0; } }
 @keyframes sc-rise { from { opacity: 0; transform: translateY(10px); } }
 @keyframes sc-seg-light { from { background: var(--seg-ghost); box-shadow: none; } }
 .sc-enter { animation: sc-enter var(--dur-enter) var(--ease-standard) backwards; }
-.sc-bar__tip { animation: sc-fade .3s ease calc(var(--dur-value) + .3s) backwards; }
 @media (prefers-reduced-motion: reduce) {
   [class^="sc-"], [class*=" sc-"], [class^="sc-"]::before, [class*=" sc-"]::before, [class^="sc-"]::after, [class*=" sc-"]::after,
   .sc-gauge .val, .sc-spark svg, .sc-chart svg, .sc-segbars__col i,

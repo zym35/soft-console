@@ -12,4 +12,4 @@ Or `SoftConsole.gauge(el, 72, { label, unit, min, max })`. The arc sweeps in and
 - Do use it for bounded values where position in the range matters: load, utilization, fill level.
 - Do keep the label to two words.
 - Don't use it for unbounded counts (requests, errors). Use a KPI tile.
-- Don't put more than three gauges in a row; compare many values with a bar chart.
+- Don't put more than three gauges in a row; compare many values with SegmentBars or a DataTable.

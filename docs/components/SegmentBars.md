@@ -41,6 +41,6 @@ How it reads:
 ## Do and don't
 - Do use the live (backlit) glass for values the system reports, and the setpoint (reflective) glass only for a series a person sets, following the display rule.
 - Do keep it to one series. Use a LineChart to compare series.
-- Do use it for read-only series of any length. Use a BarChart when people pick a bar.
+- Do use it for daily or hourly totals, from a week to a month of columns.
 - Don't put more than one or two displays in a view. Segment displays are the loudest element on screen.
 - Don't rely on segment height for exact values. The readout carries the number.

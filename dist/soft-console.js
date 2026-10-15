@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"BarChart"},{"name":"LineChart"},{"name":"DataTable"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"ListRow"},{"name":"FormRow"},{"name":"ToggleGroup"},{"name":"TextArea"},{"name":"FileField"},{"name":"SaveBar"},{"name":"Callout"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Toast"},{"name":"Disclosure"},{"name":"Readouts"},{"name":"CodeBlock"},{"name":"SegmentBars"}]} */
+/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"LineChart"},{"name":"DataTable"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"ListRow"},{"name":"FormRow"},{"name":"ToggleGroup"},{"name":"TextArea"},{"name":"FileField"},{"name":"SaveBar"},{"name":"Callout"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Toast"},{"name":"Disclosure"},{"name":"Readouts"},{"name":"CodeBlock"},{"name":"SegmentBars"}]} */
 /* Soft Console helpers. Plain script, no dependencies. Exposes window.SoftConsole.
    Markup and styling live in bundle.css; this file draws the instruments and wires interactions. */
 (function () {
@@ -227,31 +227,6 @@
       });
     }
     draw();
-    return el;
-  }
-
-  /* ---------- bar chart ---------- */
-  function bars(el, values, opts) {
-    var o = opts || {};
-    var labels = o.labels || values.map(function (v, i) { return String(i + 1); });
-    var names = o.names || labels, unit = o.unit || '';
-    var sel = o.selected == null ? values.indexOf(Math.max.apply(null, values)) : o.selected;
-    var max = o.max || 100, fmt = o.format || function (v) { return v; };
-    el.classList.add('sc-bars');
-    el.innerHTML = values.map(function (v, i) {
-      var pct = Math.max(0, Math.min(100, v / max * 100));
-      return '<button type="button" class="sc-bar" aria-pressed="' + (i === sel) + '" aria-label="' + names[i] + ': ' + fmt(v) + ' ' + unit + '" style="--v:' + pct + ';--i:' + i + '">'
-        + '<span class="sc-bar__track sc-inset-1"><span class="sc-bar__fill"></span><span class="sc-bar__tip sc-raised-1">' + fmt(v) + '</span></span>'
-        + '<span class="sc-bar__label">' + labels[i] + '</span></button>';
-    }).join('');
-    if (!el.dataset.scBound) {
-      el.dataset.scBound = '1';
-      el.addEventListener('click', function (e) {
-        var b = e.target.closest('.sc-bar');
-        if (!b) return;
-        $$('.sc-bar', el).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-      });
-    }
     return el;
   }
 
@@ -580,9 +555,6 @@
       gauge(el, num(el.getAttribute('data-sc-gauge'), 0), { min: num(el.dataset.min, 0), max: num(el.dataset.max, 100), unit: el.dataset.unit, label: el.dataset.label });
     });
     $$('[data-sc-spark]', r).forEach(function (el) { spark(el, list(el.getAttribute('data-sc-spark')).map(Number)); });
-    $$('[data-sc-bars]', r).forEach(function (el) {
-      bars(el, list(el.getAttribute('data-sc-bars')).map(Number), { labels: el.dataset.labels ? list(el.dataset.labels) : null, names: el.dataset.names ? list(el.dataset.names) : null, unit: el.dataset.unit, max: num(el.dataset.max, 100), selected: el.dataset.selected == null ? null : num(el.dataset.selected, 0) });
-    });
     $$('[data-sc-segbars]', r).forEach(function (el) {
       var d = el.dataset, unit = d.unit || '';
       segbars(el, list(el.getAttribute('data-sc-segbars')).map(Number), { labels: d.labels ? list(d.labels) : null, names: d.names ? list(d.names) : null, format: function (v) { return { text: String(+v.toFixed(2)), unit: unit }; }, max: num(d.max, 0), levels: num(d.levels, 0), digits: num(d.digits, 0), maxLabels: num(d.maxLabels, 0), label: d.label, totalLabel: d.totalLabel, stateLabel: d.stateLabel });
@@ -613,7 +585,6 @@
     gauge: gauge,
     spark: spark,
     lines: lines,
-    bars: bars,
     jog: jog,
     select: select,
     dialog: dialog,

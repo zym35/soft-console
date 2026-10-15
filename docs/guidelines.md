@@ -43,8 +43,8 @@ Contrast on `surface`, measured per palette:
 
 ### Accent
 
-- `accent` fills the primary button (as a gradient from `accent-2`), the live arc of a gauge, the selected bar, slider fills, the switch-on ring and the focus ring.
-- `accent-glow` is the soft light around lit accent marks: the primary button, the gauge arc, the selected bar, backlit digits. Knobs never glow.
+- `accent` fills the primary button (as a gradient from `accent-2`), the live arc of a gauge, slider fills, the switch-on ring and the focus ring.
+- `accent-glow` is the soft light around lit accent marks: the primary button, the gauge arc, backlit digits and lit segment bars. Knobs never glow.
 - `accent-tint` is the faint wash inside an inset track that is on (switch track, checked box).
 
 ### Signals
@@ -79,7 +79,7 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 
 ## Shape and depth
 
-- Corners are tight: `radius-xs` for checkboxes, `radius-sm` for segments, `radius-md` for buttons and fields, `radius-lg` for tiles and bezels, `radius-xl` for panels, `radius-pill` for tracks, chips, meters and bars.
+- Corners are tight: `radius-xs` for checkboxes, `radius-sm` for segments, `radius-md` for buttons and fields, `radius-lg` for tiles and bezels, `radius-xl` for panels, `radius-pill` for tracks, chips and meters.
 - Depth is subtle. Use the shadow tokens as they are; never build a deeper shadow by hand.
 - Convex parts (knobs, gauge hubs, slider thumbs) take a `surface-up` to `surface-down` gradient at 145°.
 - Knobs carry a thin ring set just inside their edge: a faint `rule` groove when off, `accent` when on. No glow.
@@ -103,7 +103,7 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 Motion is expressive but functional. Durations: `dur-press` for press travel, `dur-ui` for switches, hover and the selection marker, `dur-value` for values moving into place, `dur-enter` for panels rising in on first load. Every transition uses `ease-standard`.
 
 - Buttons and segments travel in when pressed; the shadow animates, it never jumps.
-- Values move like hardware: gauges sweep, digits count up, bars and meters grow in, charts reveal left to right.
+- Values move like hardware: gauges sweep, digits count up, meters grow in, segment bars light up, charts reveal left to right.
 - Panels and tiles rise in once on first load (`SoftConsole.init(root, { enter: true })`), staggered by 60ms.
 - Overlays (tooltips, toasts, dialogs) are centered with the CSS `translate` property and animate only `transform`. Mixing both in `transform` makes an overlay slide sideways as it rises.
 - Under `prefers-reduced-motion`, all of it is switched off and values appear in place.
@@ -126,5 +126,5 @@ Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with
 
 1. Load `dist/tokens.css`, then `dist/soft-console.css`, then `dist/soft-console.js` (a plain script; it defines `window.SoftConsole` and needs no libraries).
 2. Set `data-theme` on `<html>` (default `graphite-teal`) and, for dense screens, `data-density="compact"`.
-3. Write the markup from each component's guidelines and call `SoftConsole.init(root)`. It mounts icons, wires selection groups, switches, toggles and sliders, upgrades selects in fields into Soft Console listboxes, draws every `data-sc-seg`, `data-sc-segbars`, `data-sc-gauge`, `data-sc-spark`, `data-sc-bars`, `data-sc-jog` and `data-sc-count` element, and wires `data-sc-dialog` buttons to open their dialog. Call it again after you add markup.
-4. Draw instruments from data with `SoftConsole.segment`, `.segbars`, `.gauge`, `.spark`, `.lines`, `.bars` and `.jog`. Open and close dialogs with `SoftConsole.dialog(scrim)`.
+3. Write the markup from each component's guidelines and call `SoftConsole.init(root)`. It mounts icons, wires selection groups, switches, toggles and sliders, upgrades selects in fields into Soft Console listboxes, draws every `data-sc-seg`, `data-sc-segbars`, `data-sc-gauge`, `data-sc-spark`, `data-sc-jog` and `data-sc-count` element, and wires `data-sc-dialog` buttons to open their dialog. Call it again after you add markup.
+4. Draw instruments from data with `SoftConsole.segment`, `.segbars`, `.gauge`, `.spark`, `.lines` and `.jog`. Open and close dialogs with `SoftConsole.dialog(scrim)`.
