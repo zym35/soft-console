@@ -6,7 +6,7 @@ Status chips pair an LED with a word so a state reads at a glance and never by c
 ```html
 <span class="sc-chip sc-inset-1"><span class="sc-led sc-led--ok"></span>Online</span>
 ```
-LED modifiers: `--ok`, `--warn`, `--crit` (add `--blink` for an active failure), `--info`, `--off` (unlit socket for standby).
+LED modifiers: `--ok`, `--warn`, `--crit` (add `--blink` for an active failure), `--info`, `--off` (unlit socket for standby). LEDs use the vivid `ok-led`, `warn-led`, `crit-led` and `info-led`, so they stay lit in light mode while signal text deepens.
 
 ## Do and don't
 - Do always include the word. The LED is a second channel, not the message.

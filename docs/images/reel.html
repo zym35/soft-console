@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en" data-theme="graphite-teal" data-mode="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soft Console Reel</title>
+<link rel="stylesheet" href="../../dist/tokens.css">
+<link rel="stylesheet" href="../../dist/soft-console.css">
+<script src="../../dist/soft-console.js"></script>
+<!--
+  The README GIF, scripted. A fake cursor drives real kit interactions, then flips dark to light and back, in about 7.5 seconds.
+  ?loop replays forever (preview); without it the reel plays once and sets window.reelDone (recording).
+-->
+<style>
+  :root { --stage-w: 1200px; --stage-h: 720px; }
+  html, body { margin: 0; overflow: hidden; }
+  body { width: 100vw; height: 100vh; }
+  #stage { position: relative; width: var(--stage-w); height: var(--stage-h); padding: 22px 26px; box-sizing: border-box; display: grid; grid-template-rows: 52px 1fr; gap: 20px; background: var(--surface); transform-origin: top left; overflow: hidden; }
+  .bar { display: flex; align-items: center; gap: 14px; }
+  .brand { margin-right: auto; }
+  .brand b { display: block; font: 700 20px/1.1 var(--font-ui); letter-spacing: -.3px; }
+  .brand span { font: 500 11.5px/1.6 var(--font-data); color: var(--text-3); letter-spacing: .04em; }
+  .mode > button { display: inline-grid; place-items: center; padding: 0 12px; }
+  .mode .sc-ic { width: 18px; height: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 20px; min-height: 0; }
+  .grid > .sc-panel { min-height: 0; overflow: hidden; }
+  .center { display: grid; place-items: center; }
+  .sc-gauge { width: 214px; }
+  .sc-segbars__cols { height: 96px; }
+  .sc-segbars__head .sc-seg7 { font-size: 30px; }
+  .sc-display--live .sc-display__glass { padding: 10px 16px 12px; }
+  .sc-chart { height: 148px; }
+  .stack { display: grid; gap: 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sc-alerts > li { padding: 9px 0; }
+  /* demo-only press state: the scripted cursor can't trigger :active */
+  .sc-btn.is-press { box-shadow: var(--btn-press); }
+  .sc-btn--primary.is-press { box-shadow: inset 2px 2px 6px color-mix(in srgb, var(--accent-ink) 55%, transparent), inset -2px -2px 6px color-mix(in srgb, white 30%, transparent); }
+  .sc-btn.is-press > * { transform: scale(.97); }
+  #toast { position: absolute; }
+  #toast[hidden] { display: none; }
+  /* the cursor: white arrow with a dark outline, visible in both modes */
+  #cursor { position: absolute; left: 0; top: 0; z-index: 100; width: 26px; height: 26px; pointer-events: none; transform: translate(1260px, 760px); filter: drop-shadow(1px 2px 3px #0006); }
+  #cursor svg { display: block; width: 100%; height: 100%; transition: transform .12s ease; }
+  #cursor.down svg { transform: scale(.82); }
+  .ripple { position: absolute; z-index: 99; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; border: 2px solid var(--accent-mark); pointer-events: none; animation: ripple .5s ease-out forwards; }
+  @keyframes ripple { from { transform: scale(.3); opacity: .9; } to { transform: scale(1.4); opacity: 0; } }
+</style>
+</head>
+<body class="sc-root">
+<div id="stage" data-density="compact">
+  <header class="bar">
+    <div class="brand"><b>Soft Console</b><span>35 components · dark and light · zero dependencies</span></div>
+    <span class="sc-chip sc-inset-1"><span class="sc-led sc-led--ok"></span>Cluster online</span>
+    <button type="button" class="sc-btn sc-btn--primary sc-btn--sm" id="deploy"><span data-sc-icon="bolt"></span><span>Deploy</span></button>
+    <div class="sc-segmented sc-raised-1 mode" data-sc-single id="mode" role="group" aria-label="Mode">
+      <button type="button" value="dark" aria-pressed="true" aria-label="Dark"><span data-sc-icon="moon"></span></button><button type="button" value="light" aria-pressed="false" aria-label="Light"><span data-sc-icon="sun"></span></button><button type="button" value="auto" aria-pressed="false" aria-label="Match system"><span data-sc-icon="monitor"></span></button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Cluster load</h3><span class="sc-label">Live</span></div>
+      <div class="center"><div id="gauge"></div></div>
+    </article>
+
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Alarm threshold</h3><span class="sc-label">Setpoint</span></div>
+      <div class="stack">
+        <div class="sc-display sc-raised-2"><div class="sc-display__glass">
+          <div class="sc-display__top"><span>Alarm at</span><span>Armed</span></div>
+          <div class="sc-display__row"><div id="thr"></div><span class="sc-display__unit">°C</span></div>
+        </div></div>
+        <div class="sc-jog-row">
+          <button type="button" class="sc-btn sc-ibtn sc-btn--sm" aria-label="Lower"><span data-sc-icon="minus"></span></button>
+          <div class="sc-jog sc-raised-1" id="jog" aria-label="Alarm threshold"><div class="sc-jog__ridges"></div></div>
+          <button type="button" class="sc-btn sc-ibtn sc-btn--sm" aria-label="Raise"><span data-sc-icon="plus"></span></button>
+        </div>
+      </div>
+    </article>
+
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Usage</h3><span class="sc-label">Live</span></div>
+      <div class="sc-display sc-display--live sc-raised-2"><div class="sc-display__glass" id="bars"></div></div>
+    </article>
+
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Monitoring</h3></div>
+      <div class="stack">
+        <div class="row"><span>Auto-scale</span><button type="button" class="sc-switch sc-inset-1" role="switch" aria-checked="false" id="autoscale" aria-label="Auto-scale"></button></div>
+        <div class="row"><span>Alert on threshold</span><button type="button" class="sc-switch sc-inset-1" role="switch" aria-checked="true" aria-label="Alert on threshold"></button></div>
+        <div class="row"><span>Range</span>
+          <div class="sc-segmented sc-raised-1" data-sc-single id="range" role="group" aria-label="Range">
+            <button type="button" value="1h" aria-pressed="false">1h</button><button type="button" value="24h" aria-pressed="true">24h</button><button type="button" value="7d" aria-pressed="false">7d</button>
+          </div></div>
+        <div class="row"><label for="rate">Sample rate</label><output for="rate" class="sc-range-out"></output></div>
+        <input id="rate" class="sc-range" type="range" min="50" max="1000" step="10" value="250" data-format="{v} ms">
+      </div>
+    </article>
+
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">CPU</h3><span class="sc-label" id="range-label">Last 24 h</span></div>
+      <div class="stack" style="gap:10px"><div class="sc-chart sc-inset-2" id="chart"></div><div class="sc-legend" id="legend"></div></div>
+    </article>
+
+    <article class="sc-panel sc-raised-2">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Alerts</h3><span class="sc-label">3 open</span></div>
+      <ul class="sc-alerts">
+        <li><span class="sc-sev sc-sev--crit"><span class="sc-led sc-led--crit sc-led--blink"></span>CRIT</span><div><b>edge-07 unreachable</b><span class="sc-alerts__sub">3 missed heartbeats</span></div><time>4m</time></li>
+        <li><span class="sc-sev sc-sev--warn"><span class="sc-led sc-led--warn"></span>WARN</span><div><b>edge-12 disk at 91%</b><span class="sc-alerts__sub">/var/lib/metrics</span></div><time>18m</time></li>
+        <li><span class="sc-sev sc-sev--info"><span class="sc-led sc-led--info"></span>INFO</span><div><b>Config v2.14 rolled out</b><span class="sc-alerts__sub">24 of 24 nodes</span></div><time>1h</time></li>
+      </ul>
+    </article>
+  </main>
+
+  <div class="sc-toast sc-raised-2" id="toast" role="status" hidden><span class="sc-led sc-led--ok"></span>Deployed to 24 nodes</div>
+  <div id="cursor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.5v17.2l4.6-4.3 2.9 6.6 3.1-1.4-2.9-6.5H18z" fill="#fff" stroke="#15181d" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  var LOOP = /[?&]loop\b/.test(location.search);
+
+  /* fit the 1200 x 720 stage into smaller windows (the preview pane); recording runs at full size */
+  var scale = 1;
+  function fit() {
+    scale = Math.min(1, innerWidth / 1200, innerHeight / 720);
+    stage.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
+  }
+  fit();
+  addEventListener('resize', fit);
+
+  /* ---------- instruments ---------- */
+  SoftConsole.init(stage);
+  function walk(seed, start, n) { var s = seed, v = start, out = []; for (var i = 0; i < n; i++) { s = (s * 9301 + 49297) % 233280; v = Math.max(6, Math.min(96, v + (s / 233280 - 0.5) * 14)); out.push(+v.toFixed(1)); } return out; }
+  var RANGES = { '1h': [5, 61, 47, 'Last hour'], '24h': [11, 52, 23, 'Last 24 h'], '7d': [29, 44, 71, 'Last 7 days'] };
+  var focus = 2, range = '24h';
+  function chart(next) {
+    range = next;
+    var r = RANGES[range], n = 24;
+    var series = [{ name: 'edge-01', data: walk(r[0], r[1], n) }, { name: 'edge-02', data: walk(r[0] + 12, 61, n) }, { name: 'edge-12', data: walk(r[2], 66, n) }, { name: 'edge-15', data: walk(r[0] + 42, 34, n) }];
+    SoftConsole.lines(document.getElementById('chart'), document.getElementById('legend'), series, { mode: 'focus', focus: focus, label: 'CPU load' });
+    document.getElementById('range-label').textContent = r[3];
+  }
+  /* lines() keeps the series it was first bound with, so redraw with the current range after its own handler */
+  document.getElementById('legend').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { focus = +b.dataset.i; chart(range); } });
+  document.getElementById('range').addEventListener('sc-change', function (e) { chart(e.detail.value); });
+  document.getElementById('mode').addEventListener('sc-change', function (e) { SoftConsole.setMode(e.detail.value); });
+  var jog = SoftConsole.jog(document.getElementById('jog'), { min: 40, max: 95, value: 78, display: document.getElementById('thr'), digits: 3 });
+  var DAYS = [203000, 159622, 23353, 58643, 39854, 115466, 64210];
+  function bars() { SoftConsole.segbars(document.getElementById('bars'), DAYS, { labels: ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'], format: function (v) { return { text: (v / 1000).toFixed(v >= 1e5 ? 0 : 1), unit: 'k tokens' }; }, label: 'Daily tokens', totalLabel: 'Tokens · 7 days' }); }
+  function gauge(v) { SoftConsole.gauge(document.getElementById('gauge'), v, { label: 'Cluster load' }); }
+  /* the instruments draw (and animate in) when the reel starts, so the recording catches the boot */
+  function boot() { gauge(64); chart('24h'); bars(); }
+
+  /* ---------- scripted cursor ---------- */
+  var cur = document.getElementById('cursor'), pos = { x: 1260, y: 760 };
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  function place(x, y) { pos = { x: x, y: y }; cur.style.transform = 'translate(' + (x - 4) + 'px,' + (y - 2) + 'px)'; }
+  /* a point in stage pixels: fx, fy are fractions across the element */
+  function at(el, fx, fy) {
+    var r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    return { x: (r.left - s.left + r.width * (fx == null ? 0.5 : fx)) / scale, y: (r.top - s.top + r.height * (fy == null ? 0.5 : fy)) / scale };
+  }
+  function glide(to, ms, onStep) {
+    var from = pos, t0 = performance.now();
+    return new Promise(function (done) {
+      (function step(now) {
+        var t = Math.min(1, (now - t0) / ms), k = ease(t);
+        place(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k);
+        if (onStep) onStep(k);
+        if (t < 1) requestAnimationFrame(step); else done();
+      })(t0);
+    });
+  }
+  function ripple() {
+    var r = document.createElement('span');
+    r.className = 'ripple';
+    r.style.left = pos.x + 'px'; r.style.top = pos.y + 'px';
+    stage.appendChild(r);
+    setTimeout(function () { r.remove(); }, 600);
+  }
+  function press(down) { cur.classList.toggle('down', down); }
+  async function click(el, pressEl) {
+    press(true); ripple();
+    if (pressEl) pressEl.classList.add('is-press');
+    await wait(110);
+    press(false);
+    if (pressEl) pressEl.classList.remove('is-press');
+    el.click();
+  }
+  var $ = function (s) { return stage.querySelector(s); };
+
+  /* ---------- the reel ---------- */
+  async function reel() {
+    var t0 = performance.now();
+    boot();
+    await wait(800); // instruments boot: gauge sweep, bars light up, chart reveal
+
+    // flip a switch
+    await glide(at($('#autoscale')), 420);
+    await click($('#autoscale'));
+    await wait(80);
+
+    // change the range: the chart redraws
+    await glide(at($('#range button[value="7d"]')), 320);
+    await click($('#range button[value="7d"]'));
+    await wait(180);
+
+    // drag the jog wheel: the setpoint display follows
+    var j = $('#jog');
+    await glide(at(j, 0.25), 360);
+    press(true); j.classList.add('is-grab');
+    var v0 = jog.value;
+    await glide(at(j, 0.8), 620, function (k) { jog.set(v0 + Math.round(9 * k)); });
+    press(false); j.classList.remove('is-grab');
+
+    // scan the segment bars: the readout follows the cursor
+    var cols = stage.querySelectorAll('.sc-segbars__col');
+    await glide(at(cols[0], 0.5, 0.6), 340);
+    var last = -1;
+    await glide(at(cols[cols.length - 1], 0.5, 0.6), 650, function () {
+      var i = Array.prototype.findIndex.call(cols, function (c) { var r = at(c, 1, 0); return pos.x <= r.x; });
+      if (i >= 0 && i !== last) { last = i; cols[i].dispatchEvent(new PointerEvent('pointerover', { bubbles: true })); }
+    });
+
+    // switch to light
+    await glide(at($('#mode button[value="light"]')), 420, function (k) { if (k > 0.3 && last >= 0) { last = -1; $('.sc-segbars__cols').dispatchEvent(new PointerEvent('pointerleave')); } });
+    await click($('#mode button[value="light"]'));
+    await wait(260);
+
+    // deploy: the button presses in, a toast confirms, the gauge sweeps to its new load
+    await glide(at($('#deploy')), 340);
+    await click($('#deploy'), $('#deploy'));
+    var toast = $('#toast');
+    toast.hidden = false;
+    gauge(88);
+    await wait(260);
+
+    // drag the slider
+    var rate = $('#rate'), pct = function () { return (rate.value - rate.min) / (rate.max - rate.min); };
+    var thumb = function () { var r = at(rate, 0, 0.5), w = rate.getBoundingClientRect().width / scale; return { x: r.x + 13 + pct() * (w - 26), y: r.y }; };
+    await glide(thumb(), 420);
+    press(true);
+    var from = +rate.value, w = rate.getBoundingClientRect().width / scale, x0 = pos.x;
+    await glide({ x: x0 + 0.42 * (w - 26), y: pos.y }, 520, function (k) {
+      rate.value = Math.round((from + k * 0.42 * (rate.max - rate.min)) / 10) * 10;
+      rate.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    press(false);
+    toast.hidden = true;
+
+    // back to dark
+    await glide(at($('#mode button[value="dark"]')), 460);
+    await click($('#mode button[value="dark"]'));
+    await wait(300);
+    await glide({ x: 1260, y: 640 }, 360);
+    window.reelMs = Math.round(performance.now() - t0);
+    window.reelDone = true;
+    if (LOOP) location.reload();
+  }
+  window.reelReady = true;
+  if (LOOP || !/[?&]hold\b/.test(location.search)) reel();
+  else window.startReel = reel;
+})();
+</script>
+</body>
+</html>

@@ -11,6 +11,8 @@ A tooltip shows help text on a small raised bubble when a ghost icon button is h
 ```
 The bubble is centered with the `translate` property and rises with `transform`. Overriding one never shifts the other. `.sc-tip--end` anchors the bubble to the button's right edge, for use near a panel's right border. It opens on hover and focus with CSS alone.
 
+The bubble casts `float`, the dark half of a raised shadow, like every overlay.
+
 ## Do and don't
 - Do repeat the bubble text in the button's `aria-label`.
 - Do keep the text to a sentence or two.

@@ -31,7 +31,7 @@ Options:
 - `stateLabel` ("Live"): the top-right word while the readout shows the total.
 
 How it reads:
-- Past columns are lit at reduced intensity; the latest is lit at full intensity, with a glow on live glass.
+- Past columns are lit at reduced intensity; the latest is lit at full intensity, with a `vfd-glow` on live glass, in both modes.
 - The pointer, or the arrow keys, Home, End and Escape when the graph has focus, move a cursor. The cursor column takes the full intensity, and the readout shows its name, value and "Latest" or "Day".
 - Columns cap at 40px and spread evenly, so wide panels keep the meter look.
 - Columns are not buttons. The graph is one focusable `role="img"` whose label lists every value.

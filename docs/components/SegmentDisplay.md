@@ -4,7 +4,7 @@ Segment displays show one important number in seven-segment digits, with unlit s
 
 ## Two kinds, by role
 - `.sc-display--setpoint`: reflective pale glass (`lcd-glass`, `lcd-ink`) for numbers a person sets: thresholds, limits, targets.
-- `.sc-display--live`: backlit dark glass (`vfd-glass`, segments in `accent-text`) for numbers the system reports.
+- `.sc-display--live`: backlit dark glass (`vfd-glass`, segments in `vfd-ink`) for numbers the system reports. It stays dark in light mode, like a display window set into a light casing.
 
 ## What you provide
 ```html

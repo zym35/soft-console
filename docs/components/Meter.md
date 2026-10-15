@@ -11,6 +11,8 @@ Meters are thin recessed tracks with a colored fill, used in lists of rails, res
 ```
 `--p` is the fill width, `--c` its color: `accent` by default, a signal color only past a threshold. `.sc-meter--mini` fits inside table cells.
 
+In light mode `warn` and `crit` fills take the deep signal tones (warn leans orange) and fills do not glow.
+
 ## Do and don't
 - Do switch the fill to `warn` or `crit` only when a threshold is crossed, and say so with the LED and value.
 - Don't use meters for values that can exceed 100%.

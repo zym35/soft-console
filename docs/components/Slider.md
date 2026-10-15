@@ -1,6 +1,6 @@
 # Slider
 
-A slider sets a value in a range; the track is recessed, the filled part is accent, and the knob carries the accent ring.
+A slider sets a value in a range; the track is recessed, the filled part is accent, and the knob carries the `accent-mark` ring.
 
 ## What you provide
 ```html

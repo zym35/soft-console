@@ -1,4 +1,4 @@
-Soft Console is a dark neumorphic system for technical dashboards: one soft material, shaped into an instrument panel. Height carries meaning, a single accent marks values and the main action, and the hardware vocabulary (segment displays, LEDs, tick-marked dials, a jog wheel) does the talking. It is dark only.
+Soft Console is a neumorphic system for technical dashboards: one soft material, shaped into an instrument panel. Height carries meaning, a single accent marks values and the main action, and the hardware vocabulary (segment displays, LEDs, tick-marked dials, a jog wheel) does the talking. It is dark by default, with a light mode cut from the same material.
 
 ## Principles
 
@@ -14,49 +14,71 @@ Everything is cut from `surface`. Its lighter and darker relatives (`surface-up`
 
 ### Palettes
 
-Three palettes ship as themes. Set one with `data-theme` on `<html>`, or call `SoftConsole.setTheme(id)` from a preferences screen:
+Two palettes ship as themes. Set one with `data-theme` on `<html>`, or call `SoftConsole.setTheme(id)` from a preferences screen:
 
 | Theme id | Name | Character |
 | --- | --- | --- |
 | `graphite-teal` | Graphite · Teal | The default. Neutral cool graphite with a teal signal. |
 | `carbon-cyan` | Carbon · Cyan | Darker and almost neutral. Crisp, high-tech. |
-| `basalt-lime` | Basalt · Lime | Olive-black with an LCD-green signal. The most retro. |
 
 Store the person's choice and apply it before first paint. Never mix palettes on one screen.
 
+### Modes
+
+Each palette comes in dark and light. Dark is the default. Set the mode with `data-mode` on `<html>`, or call `SoftConsole.setMode(mode)`:
+
+| Mode | What it does |
+| --- | --- |
+| `dark` | The default. Also what you get with no `data-mode` at all. |
+| `light` | The same material on a cool light grey, tinted by the palette's hue. |
+| `auto` | Follows the operating system (`prefers-color-scheme`) in CSS alone, so it works before any script runs. |
+
+Store the person's choice and apply it before first paint, like the palette. `setMode` crossfades between modes; under `auto` a change in the OS applies at once. `data-mode` goes on `<html>` only, so a screen never mixes modes.
+
+Light mode keeps the grammar and changes the light:
+
+- The material is light, so shadows grow a little (0.6x depth) and the lit side turns almost white.
+- `accent` stays bright for fills, with dark `accent-ink` on it. Marks that must reach 3:1 against the material (focus rings, the switch-on ring, the radio dot, the slider thumb ring) use `accent-mark`, which is `accent` in dark and a deeper accent in light.
+- Nothing on the material glows (`glow` is 0, `accent-glow` is transparent). LEDs and live display glass still do: they are lit.
+- Signal colors deepen so they pass as text; LEDs use the vivid `ok-led`, `warn-led`, `crit-led` and `info-led`. `warn` leans orange so it never reads brown.
+- Live display glass stays dark, with bright `vfd-ink`. Setpoint glass is the same in both modes.
+
 ### Text
 
-- `text-1` for values and primary text, `text-2` for secondary text, `text-3` for labels, captions and axis text. All three read on `surface` and `well` in every palette.
+- `text-1` for values and primary text, `text-2` for secondary text, `text-3` for labels, captions and axis text. All three read on `surface` and `well` in every palette and mode.
 - `text-off` is for disabled controls and minor gauge ticks only. Never set content in it.
 - `accent-text` for accent as text or icon on `surface` (selected segments, setpoint labels, links). `accent-ink` for text on an `accent` fill.
 
-Contrast on `surface`, measured per palette:
+Contrast measured per palette and mode, on `surface` in dark and on `well` in light (the darker of the two text backgrounds in each mode):
 
-| Pair | Graphite · Teal | Carbon · Cyan | Basalt · Lime |
-| --- | --- | --- | --- |
-| `text-1` | 11.15:1 | 12.65:1 | 11.97:1 |
-| `text-2` | 6.77:1 | 7.75:1 | 7.56:1 |
-| `text-3` | 4.84:1 | 5.60:1 | 5.54:1 |
-| `accent-text` | 8.13:1 | 8.88:1 | 10.22:1 |
-| `crit` (lowest signal) | 4.95:1 | 5.58:1 | 5.14:1 |
-| `accent-ink` on `accent` | 7.40:1 | 8.24:1 | 10.07:1 |
+| Pair | Graphite dark | Carbon dark | Graphite light | Carbon light |
+| --- | --- | --- | --- | --- |
+| `text-1` | 11.15:1 | 12.65:1 | 10.63:1 | 10.62:1 |
+| `text-2` | 6.77:1 | 7.75:1 | 6.52:1 | 6.60:1 |
+| `text-3` | 4.84:1 | 5.60:1 | 4.62:1 | 4.60:1 |
+| `accent-text` | 8.13:1 | 8.88:1 | 4.64:1 | 4.67:1 |
+| Lowest signal | 4.95:1 (`crit`) | 5.58:1 (`crit`) | 4.63:1 (`crit`) | 4.61:1 (`warn`) |
+| `accent-mark` (3:1 needed) | 6.30:1 | 7.68:1 | 3.03:1 | 3.02:1 |
+| `accent-ink` on `accent` | 7.40:1 | 8.24:1 | 5.12:1 | 5.84:1 |
 
 ### Accent
 
-- `accent` fills the primary button (as a gradient from `accent-2`), the live arc of a gauge, slider fills, the switch-on ring and the focus ring.
-- `accent-glow` is the soft light around lit accent marks: the primary button, the gauge arc, backlit digits and lit segment bars. Knobs never glow.
+- `accent` fills the primary button (as a gradient from `accent-2`), the live arc of a gauge and slider fills.
+- `accent-mark` draws the thin marks that must stay visible: the focus ring, the switch-on ring, the radio dot and the slider thumb ring.
+- `accent-glow` is the soft light around the primary button in dark mode. Lit digits and bars on live glass use `vfd-glow`. Knobs never glow.
+- Only lit things glow. Glows on the material scale with `glow`, which is 0 in light mode; LEDs and live glass keep theirs.
 - `accent-tint` is the faint wash inside an inset track that is on (switch track, checked box).
 
 ### Signals
 
-`ok`, `warn`, `crit` and `info` mean status and nothing else. Every signal appears beside a word (Online, Degraded, Offline, Syncing) so a state never relies on color alone. Blink (`sc-led--blink`) only for something failing right now, one per view at most.
+`ok`, `warn`, `crit` and `info` mean status and nothing else. Use them for chip text, deltas and meter fills; LEDs use `ok-led`, `warn-led`, `crit-led` and `info-led`, which stay vivid in light mode. Every signal appears beside a word (Online, Degraded, Offline, Syncing) so a state never relies on color alone. Blink (`sc-led--blink`) only for something failing right now, one per view at most.
 
 One exception: the label of a destructive or high-risk action may be set in `crit` (`.sc-btn--danger`). Never as a fill, and the action still confirms in a dialog.
 
 ### Displays
 
 - **Setpoints are reflective.** Numbers a person sets (thresholds, limits, targets) go on `lcd-glass` with `lcd-ink` segments and `lcd-ghost` unlit segments.
-- **Live values are backlit.** Numbers the system reports go on `vfd-glass` with `accent-text` segments, `vfd-ghost` unlit segments and a soft `accent-glow`.
+- **Live values are backlit.** Numbers the system reports go on `vfd-glass` with `vfd-ink` segments, `vfd-ghost` unlit segments and a soft `vfd-glow`. The glass stays dark in light mode too, like a display window set into a light casing.
 
 The style tells people which kind of number they are looking at, so never swap them. SegmentBars follow the same rule: a series the system reports goes on live glass, and a series a person sets goes on setpoint glass.
 
@@ -64,7 +86,7 @@ The style tells people which kind of number they are looking at, so never swap t
 
 Pick colors by the chart's job:
 
-- **One series matters** (one node against the fleet): the focus series in `accent`, the rest in `mute-1`, `mute-2`, `mute-3`.
+- **One series matters** (one node against the fleet): the focus series in `accent`, the rest in `mute-1`, `mute-2`, `mute-3`. `mute-1` sits nearest the focus in both modes (lightest in dark, darkest in light).
 - **Series are peers** (compare four regions): `series-1` to `series-4`. Four hues at most; group or split into small multiples beyond that. Series colors never reuse a signal color.
 
 ## Type
@@ -81,8 +103,9 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 
 - Corners are tight: `radius-xs` for checkboxes, `radius-sm` for segments, `radius-md` for buttons and fields, `radius-lg` for tiles and bezels, `radius-xl` for panels, `radius-pill` for tracks, chips and meters.
 - Depth is subtle. Use the shadow tokens as they are; never build a deeper shadow by hand.
+- Overlays float rather than rise out of the material. Dialogs, tooltips, toasts and the select list take `float`, the dark half of `raised-3` alone, so nothing lights up around them.
 - Convex parts (knobs, gauge hubs, slider thumbs) take a `surface-up` to `surface-down` gradient at 145°.
-- Knobs carry a thin ring set just inside their edge: a faint `rule` groove when off, `accent` when on. No glow.
+- Knobs carry a thin ring set just inside their edge: a faint `rule` groove when off, `accent-mark` when on. No glow.
 
 ## Spacing and density
 
@@ -94,7 +117,7 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 
 - **Hover:** buttons lift slightly (`btn-hover`); KPI tiles that open a detail view lift to `raised-3`.
 - **Pressed and selected:** `btn-press`, `accent-text`, and the accent underline under the item.
-- **Focus:** a solid 2px `accent` outline, 3px offset, on every interactive element. Never remove it.
+- **Focus:** a solid 2px `accent-mark` outline, 3px offset, on every interactive element. Never remove it.
 - **Disabled:** flattened into the surface (`btn-flat`), `rule` border, `text-off` text.
 - **Modal:** an open dialog keeps focus inside it. Escape and a click on the scrim close it, and focus returns to the control that opened it. `SoftConsole.dialog` does this for you.
 
@@ -104,6 +127,7 @@ Motion is expressive but functional. Durations: `dur-press` for press travel, `d
 
 - Buttons and segments travel in when pressed; the shadow animates, it never jumps.
 - Values move like hardware: gauges sweep, digits count up, meters grow in, segment bars light up, charts reveal left to right.
+- Switching modes with `SoftConsole.setMode` crossfades the page over `dur-ui`.
 - Panels and tiles rise in once on first load (`SoftConsole.init(root, { enter: true })`), staggered by 60ms.
 - Overlays (tooltips, toasts, dialogs) are centered with the CSS `translate` property and animate only `transform`. Mixing both in `transform` makes an overlay slide sideways as it rises.
 - Under `prefers-reduced-motion`, all of it is switched off and values appear in place.
@@ -120,11 +144,11 @@ Motion is expressive but functional. Durations: `dur-press` for press travel, `d
 
 ## Iconography
 
-Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with `currentColor`. The kit ships a small set (home, grid, chart, bell, gear, search, power, refresh, plus, minus, chevron, chevron-right, info, close, bolt, server): call `SoftConsole.mountIcons()` once, then use `SoftConsole.icon('bell')` or `<svg class="sc-ic"><use href="#sc-i-bell"/></svg>`. For anything else, use an outline set drawn on a 24px grid and set its stroke to 1.8. Never fill icons, and never use emoji as icons.
+Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with `currentColor`. The kit ships a small set (home, grid, chart, bell, gear, search, power, refresh, plus, minus, chevron, chevron-right, info, close, bolt, server, sun, moon, monitor): call `SoftConsole.mountIcons()` once, then use `SoftConsole.icon('bell')` or `<svg class="sc-ic"><use href="#sc-i-bell"/></svg>`. For anything else, use an outline set drawn on a 24px grid and set its stroke to 1.8. Never fill icons, and never use emoji as icons. A mode switch uses moon, sun and monitor (match system) as icon-only segments, each with an `aria-label`.
 
 ## Using the kit
 
 1. Load `dist/tokens.css`, then `dist/soft-console.css`, then `dist/soft-console.js` (a plain script; it defines `window.SoftConsole` and needs no libraries).
-2. Set `data-theme` on `<html>` (default `graphite-teal`) and, for dense screens, `data-density="compact"`.
+2. Set `data-theme` on `<html>` (default `graphite-teal`), `data-mode` (default `dark`) and, for dense screens, `data-density="compact"`.
 3. Write the markup from each component's guidelines and call `SoftConsole.init(root)`. It mounts icons, wires selection groups, switches, toggles and sliders, upgrades selects in fields into Soft Console listboxes, draws every `data-sc-seg`, `data-sc-segbars`, `data-sc-gauge`, `data-sc-spark`, `data-sc-jog` and `data-sc-count` element, and wires `data-sc-dialog` buttons to open their dialog. Call it again after you add markup.
 4. Draw instruments from data with `SoftConsole.segment`, `.segbars`, `.gauge`, `.spark`, `.lines` and `.jog`. Open and close dialogs with `SoftConsole.dialog(scrim)`.

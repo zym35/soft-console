@@ -8,6 +8,8 @@ A dial gauge shows one live value against its range with a tick ring, a glowing 
 ```
 Or `SoftConsole.gauge(el, 72, { label, unit, min, max })`. The arc sweeps in and the hub counts up on render; both stop under reduced motion. Ticks up to the value light in `accent-text`.
 
+In light mode the arc stays bright `accent` and does not glow; lit ticks use `accent-text`, which deepens to stay readable on the light face.
+
 ## Do and don't
 - Do use it for bounded values where position in the range matters: load, utilization, fill level.
 - Do keep the label to two words.

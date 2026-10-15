@@ -15,6 +15,8 @@
   .brand span { display: block; font: 500 11px/1.4 var(--font-data); color: var(--text-3); }
   .prefs { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
   .prefs > div { display: flex; gap: 8px; align-items: center; }
+  .mode > button { display: inline-grid; place-items: center; padding: 0 12px; }
+  .mode .sc-ic { width: 18px; height: 18px; }
   .intro { display: grid; gap: 12px; padding-top: 40px; max-width: 70ch; }
   .intro p { margin: 0; color: var(--text-2); }
   .intro h1 { margin: 0; }
@@ -39,15 +41,19 @@
 <body class="sc-root">
 <header class="top">
   <div class="bar">
-    <div class="brand">Soft Console<span>v1.2.1 · components</span></div>
+    <div class="brand">Soft Console<span>v2.0.0 · components</span></div>
     <div class="prefs">
       <div><span class="sc-label">Palette</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="palette" role="group" aria-label="Palette">
-          <button type="button" value="graphite-teal" aria-pressed="true">Graphite</button><button type="button" value="carbon-cyan" aria-pressed="false">Carbon</button><button type="button" value="basalt-lime" aria-pressed="false">Basalt</button>
+          <button type="button" value="graphite-teal" aria-pressed="true">Graphite</button><button type="button" value="carbon-cyan" aria-pressed="false">Carbon</button>
         </div></div>
       <div><span class="sc-label">Density</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="density" role="group" aria-label="Density">
           <button type="button" value="comfortable" aria-pressed="true">Comfortable</button><button type="button" value="compact" aria-pressed="false">Compact</button>
+        </div></div>
+      <div><span class="sc-label">Mode</span>
+        <div class="sc-segmented sc-raised-1 mode" data-sc-single id="mode" role="group" aria-label="Mode">
+          <button type="button" value="dark" aria-pressed="true" aria-label="Dark" title="Dark"><span data-sc-icon="moon"></span></button><button type="button" value="light" aria-pressed="false" aria-label="Light" title="Light"><span data-sc-icon="sun"></span></button><button type="button" value="auto" aria-pressed="false" aria-label="Match system" title="Match system"><span data-sc-icon="monitor"></span></button>
         </div></div>
     </div>
     <a class="sc-btn sc-btn--primary sc-btn--sm cta" href="https://github.com/zym35/soft-console" target="_blank" rel="noopener"><span>View on GitHub</span><svg class="sc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
@@ -56,7 +62,7 @@
 <main class="page">
   <div class="intro">
     <h1 class="t-display">Components</h1>
-    <p>Every Soft Console component, live, loading the kit from <code>dist/</code>. Switch the palette and density at the top. Each card links to its guidelines.</p>
+    <p>Every Soft Console component, live, loading the kit from <code>dist/</code>. Switch the palette, density and mode at the top. Each card links to its guidelines.</p>
   </div>
 
   <section class="group" aria-labelledby="g-Foundations">
@@ -174,7 +180,7 @@ SoftConsole.init(document.currentScript.previousElementSibling);
       </article>
       <article class="sc-panel sc-raised-2 card" id="Dialog">
         <div class="sc-panel__head"><h3 class="sc-panel__title">Dialog</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Dialog.md">Guidelines</a></div>
-        <p class="summary">A dialog is a raised-3 panel over a shade scrim, for confirmations and short details.</p>
+        <p class="summary">A dialog is a raised panel floating over a shade scrim, for confirmations and short details.</p>
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;gap:14px;max-width:460px">
 <section class="sc-dialog sc-raised-3 static-dialog" aria-label="Dialog preview">
@@ -237,7 +243,7 @@ SoftConsole.init(document.currentScript.previousElementSibling);
     <div class="cards">
       <article class="sc-panel sc-raised-2 card" id="Check">
         <div class="sc-panel__head"><h3 class="sc-panel__title">Check</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Check.md">Guidelines</a></div>
-        <p class="summary">Checkboxes and radios are small recessed wells; checked ones show an accent check or an accent ring.</p>
+        <p class="summary">Checkboxes and radios are small recessed wells; a checked box shows an <code>accent-text</code> check and a chosen radio an <code>accent-mark</code> dot.</p>
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;gap:12px;max-width:420px"><label class="sc-check-row" for="c-1"><input id="c-1" class="sc-check sc-inset-1" type="checkbox" checked> Include degraded nodes</label>
 <label class="sc-check-row" for="c-2"><input id="c-2" class="sc-check sc-inset-1" type="checkbox"> Show maintenance windows</label>
@@ -261,7 +267,7 @@ SoftConsole.init(document.currentScript.previousElementSibling);
       </article>
       <article class="sc-panel sc-raised-2 card" id="Switch">
         <div class="sc-panel__head"><h3 class="sc-panel__title">Switch</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Switch.md">Guidelines</a></div>
-        <p class="summary">A switch turns a setting on or off immediately; the knob carries a thin ring just inside its edge that turns accent when on.</p>
+        <p class="summary">A switch turns a setting on or off immediately; the knob carries a thin ring just inside its edge that turns <code>accent-mark</code> when on (the accent in dark, a deeper accent in light so it reaches 3:1).</p>
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;gap:14px;max-width:420px"><div class="sc-switch-row"><label for="sw-a">Auto-scale</label><button type="button" id="sw-a" class="sc-switch sc-inset-1" role="switch" aria-checked="true"></button></div>
 <div class="sc-switch-row"><label for="sw-b">Alert on threshold</label><button type="button" id="sw-b" class="sc-switch sc-inset-1" role="switch" aria-checked="true"></button></div>
@@ -357,7 +363,7 @@ document.querySelectorAll('[data-step]').forEach(function (b) {
       </article>
       <article class="sc-panel sc-raised-2 card" id="Slider">
         <div class="sc-panel__head"><h3 class="sc-panel__title">Slider</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Slider.md">Guidelines</a></div>
-        <p class="summary">A slider sets a value in a range; the track is recessed, the filled part is accent, and the knob carries the accent ring.</p>
+        <p class="summary">A slider sets a value in a range; the track is recessed, the filled part is accent, and the knob carries the <code>accent-mark</code> ring.</p>
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;gap:14px;max-width:420px"><div style="display:flex;justify-content:space-between"><label for="rate">Sample rate</label><output for="rate" class="sc-range-out"></output></div>
 <input id="rate" class="sc-range" type="range" min="50" max="1000" step="50" value="250" data-format="{v} ms">
@@ -641,6 +647,7 @@ SoftConsole.segbars(document.getElementById('segbars-week'), [203000, 159622, 23
 SoftConsole.init(document.querySelector('.top'));
 document.getElementById('palette').addEventListener('sc-change', function (e) { SoftConsole.setTheme(e.detail.value); });
 document.getElementById('density').addEventListener('sc-change', function (e) { SoftConsole.setDensity(e.detail.value); });
+document.getElementById('mode').addEventListener('sc-change', function (e) { SoftConsole.setMode(e.detail.value); });
 </script>
 </body>
 </html>

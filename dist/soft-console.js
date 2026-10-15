@@ -4,7 +4,8 @@
 (function () {
   'use strict';
 
-  var THEMES = ['graphite-teal', 'carbon-cyan', 'basalt-lime'];
+  var THEMES = ['graphite-teal', 'carbon-cyan'];
+  var MODES = ['dark', 'light', 'auto'];
   var reduced = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -15,6 +16,16 @@
     if (THEMES.indexOf(id) < 0) throw new Error('Unknown Soft Console palette "' + id + '". Use one of: ' + THEMES.join(', '));
     document.documentElement.setAttribute('data-theme', id);
     return id;
+  }
+  /* dark is the default; auto follows the OS in CSS alone. Switching crossfades where View Transitions exist. */
+  function setMode(mode) {
+    if (MODES.indexOf(mode) < 0) throw new Error('Unknown Soft Console mode "' + mode + '". Use one of: ' + MODES.join(', '));
+    var html = document.documentElement;
+    if (html.getAttribute('data-mode') === mode) return mode;
+    var apply = function () { html.setAttribute('data-mode', mode); };
+    if (document.startViewTransition && !reduced()) document.startViewTransition(apply);
+    else apply();
+    return mode;
   }
   function setDensity(mode) {
     if (mode !== 'comfortable' && mode !== 'compact') throw new Error('Density must be "comfortable" or "compact"');
@@ -482,7 +493,7 @@
     grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
     chart: '<path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/>',
     bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
-    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+    gear: '<path d="M9.95 5.31L10.53 2.72L13.47 2.72L14.05 5.31L15.29 5.82L17.53 4.4L19.6 6.47L18.18 8.71L18.69 9.95L21.28 10.53L21.28 13.47L18.69 14.05L18.18 15.29L19.6 17.53L17.53 19.6L15.29 18.18L14.05 18.69L13.47 21.28L10.53 21.28L9.95 18.69L8.71 18.18L6.47 19.6L4.4 17.53L5.82 15.29L5.31 14.05L2.72 13.47L2.72 10.53L5.31 9.95L5.82 8.71L4.4 6.47L6.47 4.4L8.71 5.82Z"/><circle cx="12" cy="12" r="3"/>',
     search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
     power: '<path d="M12 3v8"/><path d="M7 6.5a7.5 7.5 0 1 0 10 0"/>',
     refresh: '<path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4v4h-4"/>',
@@ -494,6 +505,9 @@
     close: '<path d="M6 6l12 12M18 6 6 18"/>',
     bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
     server: '<rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    moon: '<path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7Z"/>',
+    monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4"/>',
   };
   function mountIcons() {
     if (document.getElementById('sc-icons')) return;
@@ -574,10 +588,12 @@
   }
 
   window.SoftConsole = {
-    version: '1.2.1',
+    version: '2.0.0',
     themes: THEMES.slice(),
+    modes: MODES.slice(),
     init: init,
     setTheme: setTheme,
+    setMode: setMode,
     setDensity: setDensity,
     segment: segment,
     segbars: segbars,

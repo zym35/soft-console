@@ -8,6 +8,8 @@ A toast is a short confirmation pill at the bottom center of the screen.
 ```
 It rises in on insert. Remove it after about 2.6 s. It is centered with the `translate` property, so the rise keyframe never shifts it sideways.
 
+The toast casts `float`, the dark half of a raised shadow, like every overlay.
+
 ## Do and don't
 - Do show one at a time.
 - Do say what happened in a few words: "Applied to server".

@@ -1,6 +1,6 @@
 # Check
 
-Checkboxes and radios are small recessed wells; checked ones show an accent check or an accent ring.
+Checkboxes and radios are small recessed wells; a checked box shows an `accent-text` check and a chosen radio an `accent-mark` dot.
 
 ## What you provide
 ```html

@@ -1,6 +1,6 @@
 # Dialog
 
-A dialog is a raised-3 panel over a shade scrim, for confirmations and short details.
+A dialog is a raised panel floating over a shade scrim, for confirmations and short details.
 
 ## What you provide
 ```html
@@ -21,6 +21,8 @@ A dialog is a raised-3 panel over a shade scrim, for confirmations and short det
 The scrim starts `hidden`. A button with `data-sc-dialog` pointing at the scrim opens it once `SoftConsole.init` has run. Or call `SoftConsole.dialog(scrim).open(opener)` and `.close()`.
 
 While open, focus stays inside the dialog: Tab and Shift+Tab wrap around. Focus starts on the element with `autofocus`, or the first focusable one. Escape, a click on the scrim, or any `[data-sc-close]` element closes it, and focus returns to the opener. Closing fires `sc-close` on the scrim. Run the action from its own click handler, then call `.close()`.
+
+The dialog keeps the `raised-3` panel and its hairline edges but casts only `float`, the dark half of the shadow: it floats over the page rather than rising out of it, so nothing lights up around it.
 
 ## Do and don't
 - Do use it to confirm destructive actions, as the Button guidelines ask.

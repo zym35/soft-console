@@ -1,6 +1,6 @@
 # Switch
 
-A switch turns a setting on or off immediately; the knob carries a thin ring just inside its edge that turns accent when on.
+A switch turns a setting on or off immediately; the knob carries a thin ring just inside its edge that turns `accent-mark` when on (the accent in dark, a deeper accent in light so it reaches 3:1).
 
 ## What you provide
 ```html
