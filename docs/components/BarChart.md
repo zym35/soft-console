@@ -7,7 +7,7 @@ The bar chart compares a handful of values as recessed pill tracks; the selected
 <div data-sc-bars="42,58,66,88,71,49,37" data-labels="M,T,W,T,F,S,S"
      data-names="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday" data-unit="k requests per minute" data-max="100"></div>
 ```
-Or `SoftConsole.bars(el, values, { labels, names, unit, max, selected })`. Bars are buttons: click or Tab to select one. The highest bar starts selected.
+Or `SoftConsole.bars(el, values, { labels, names, unit, max, selected, format })`. `format(v)` sets the bubble text, for example `v => '$' + v.toFixed(2)`. Bars are buttons: click or Tab to select one. The highest bar starts selected.
 
 The bar chart is for choosing a bar: its pressed state and value bubble read as a control. For a read-only series, such as daily totals over 7 or 30 days, use SegmentBars.
 

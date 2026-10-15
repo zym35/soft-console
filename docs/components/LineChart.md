@@ -14,6 +14,7 @@ Line charts plot up to four series in a recessed well, colored by the chart's jo
 SoftConsole.lines(cpu, cpuLegend, [{ name: 'edge-01', data: [/* … */] }], { mode: 'focus', focus: 0, max: 100, suffix: '%', label: 'CPU load, last 24 hours' });
 </script>
 ```
+Y labels show one decimal and legend values none, followed by `suffix`. For other units, pass `format(v)`, which returns the whole label: `format: v => '$' + v.toFixed(2)`.
 
 ## Do and don't
 - Do pick the mode by the question: "how is this one doing against the rest?" is focus; "how do these compare?" is peers.

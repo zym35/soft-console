@@ -191,7 +191,7 @@
   var MUTES = ['var(--mute-1)', 'var(--mute-2)', 'var(--mute-3)'];
   function lines(el, legendEl, series, opts) {
     var o = opts || {};
-    var mode = o.mode || 'peers', max = o.max == null ? 100 : o.max, suffix = o.suffix == null ? '%' : o.suffix;
+    var mode = o.mode || 'peers', max = o.max == null ? 100 : o.max, suffix = o.suffix == null ? '%' : o.suffix, fmt = o.format;
     if (series.length > 4) throw new Error('SoftConsole.lines: four series at most. Group or facet the rest.');
     var focus = o.focus == null ? (mode === 'focus' ? 0 : -1) : o.focus;
     var draw = function () {
@@ -208,11 +208,11 @@
         var d = series[i].data.map(function (v, k) { return (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
         return '<path class="ln' + (i === focus ? ' focus' : '') + '" style="stroke:' + colors[i] + '" vector-effect="non-scaling-stroke" d="' + d + '"/>';
       }).join('');
-      var ylab = [max, max / 2, 0].map(function (v, k) { return '<span class="sc-chart__y" style="top:' + k * 50 + '%">' + +v.toFixed(1) + suffix + '</span>'; }).join('');
+      var ylab = [max, max / 2, 0].map(function (v, k) { return '<span class="sc-chart__y" style="top:' + k * 50 + '%">' + (fmt ? fmt(v) : +v.toFixed(1) + suffix) + '</span>'; }).join('');
       el.innerHTML = '<div class="sc-chart__plot"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + (o.label || 'Line chart') + '">' + grid + paths + '</svg>' + ylab + '</div>';
       if (legendEl) {
         legendEl.innerHTML = series.map(function (s, i) {
-          return '<button type="button" data-i="' + i + '" aria-pressed="' + (i === focus) + '" style="--c:' + colors[i] + '"><i></i>' + s.name + ' <b>' + s.data[n - 1].toFixed(0) + suffix + '</b></button>';
+          return '<button type="button" data-i="' + i + '" aria-pressed="' + (i === focus) + '" style="--c:' + colors[i] + '"><i></i>' + s.name + ' <b>' + (fmt ? fmt(s.data[n - 1]) : s.data[n - 1].toFixed(0) + suffix) + '</b></button>';
         }).join('');
       }
     };
@@ -236,12 +236,12 @@
     var labels = o.labels || values.map(function (v, i) { return String(i + 1); });
     var names = o.names || labels, unit = o.unit || '';
     var sel = o.selected == null ? values.indexOf(Math.max.apply(null, values)) : o.selected;
-    var max = o.max || 100;
+    var max = o.max || 100, fmt = o.format || function (v) { return v; };
     el.classList.add('sc-bars');
     el.innerHTML = values.map(function (v, i) {
       var pct = Math.max(0, Math.min(100, v / max * 100));
-      return '<button type="button" class="sc-bar" aria-pressed="' + (i === sel) + '" aria-label="' + names[i] + ': ' + v + ' ' + unit + '" style="--v:' + pct + ';--i:' + i + '">'
-        + '<span class="sc-bar__track sc-inset-1"><span class="sc-bar__fill"></span><span class="sc-bar__tip sc-raised-1">' + v + '</span></span>'
+      return '<button type="button" class="sc-bar" aria-pressed="' + (i === sel) + '" aria-label="' + names[i] + ': ' + fmt(v) + ' ' + unit + '" style="--v:' + pct + ';--i:' + i + '">'
+        + '<span class="sc-bar__track sc-inset-1"><span class="sc-bar__fill"></span><span class="sc-bar__tip sc-raised-1">' + fmt(v) + '</span></span>'
         + '<span class="sc-bar__label">' + labels[i] + '</span></button>';
     }).join('');
     if (!el.dataset.scBound) {
