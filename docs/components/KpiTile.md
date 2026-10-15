@@ -11,6 +11,7 @@ A KPI tile shows one headline number with its label, its change and a sparkline 
 </div>
 ```
 Add `.sc-kpi--link` when the tile opens a detail view: it lifts on hover. Delta color follows meaning, not direction (lower latency is `ok`). Use `.sc-spark--warn` when the trend is the problem.
+For a bounded value (CPU, memory, disk), put a `.sc-meter` in place of the sparkline. Tiles in a row stretch to the same height and keep their content at the top, so labels and values line up across the row.
 
 ## Do and don't
 - Do use four tiles per row at most, all the same height.

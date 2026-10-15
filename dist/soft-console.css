@@ -223,7 +223,7 @@
 .sc-legend b { font-weight: 500; color: var(--text-2); }
 
 /* ---------- KPI tile ---------- */
-.sc-kpi { display: grid; gap: 10px; min-width: 0; padding: calc(var(--pad-panel) - 4px); border-radius: var(--radius-lg); transition: box-shadow var(--dur-ui) var(--ease-standard), transform var(--dur-ui) var(--ease-standard); }
+.sc-kpi { display: grid; gap: 10px; align-content: start; min-width: 0; padding: calc(var(--pad-panel) - 4px); border-radius: var(--radius-lg); transition: box-shadow var(--dur-ui) var(--ease-standard), transform var(--dur-ui) var(--ease-standard); }
 .sc-kpi--link { cursor: pointer; }
 .sc-kpi--link:hover { box-shadow: var(--raised-3); transform: translateY(-1px); }
 .sc-kpi__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
