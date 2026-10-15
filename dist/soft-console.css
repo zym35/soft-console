@@ -74,9 +74,9 @@
 /* selected marker: an accent underline across the item's inner width.
    A 2px border (borders snap to whole pixels) at a whole-pixel offset, untransformed at rest,
    so it renders as heavy as the label's strokes at every size. */
-.sc-btn::after, .sc-segmented > button::after, .sc-nav-item::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
-.sc-segmented > button::after, .sc-btn--sm::after { left: 8px; right: 8px; }
-.sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { transform: none; }
+.sc-btn::after, .sc-segmented > button::after, .sc-togglegroup > button::after, .sc-nav-item::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
+.sc-segmented > button::after, .sc-togglegroup > button::after, .sc-btn--sm::after { left: 8px; right: 8px; }
+.sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-togglegroup > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { transform: none; }
 .sc-btn--danger::after { border-top-color: var(--crit); }
 
 /* ---------- segmented control ---------- */
@@ -84,6 +84,13 @@
 .sc-segmented > button { position: relative; height: calc(var(--ctl-h) - 10px); padding: 0 14px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 13px/1 var(--font-ui); letter-spacing: .03em; cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
 .sc-segmented > button:hover { color: var(--text-1); }
 .sc-segmented > button[aria-pressed="true"] { box-shadow: var(--btn-press); color: var(--accent-text); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+
+/* ---------- toggle group: a segmented control in which each option turns on or off on its own ---------- */
+.sc-togglegroup { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 5px; border-radius: calc(var(--radius-md) + 3px); }
+.sc-togglegroup > button { position: relative; height: calc(var(--ctl-h) - 10px); min-width: 46px; padding: 0 12px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 13px/1 var(--font-ui); cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
+.sc-togglegroup > button:hover { color: var(--text-1); }
+.sc-togglegroup > button[aria-pressed="true"] { box-shadow: var(--btn-press); color: var(--accent-text); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+.sc-togglegroup > button:disabled { color: var(--text-off); cursor: not-allowed; }
 
 /* ---------- side nav: labeled navigation rail; the current page presses in like a selected segment ---------- */
 .sc-sidenav { display: grid; gap: var(--space-1); }
@@ -157,6 +164,33 @@
 .sc-select__option[aria-selected="true"]::after { content: ""; position: absolute; right: 14px; top: 50%; width: 9px; height: 4.5px; margin-top: -4px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
 .sc-select__option[aria-disabled="true"] { color: var(--text-off); cursor: not-allowed; }
 .sc-select__group { padding: 8px 12px 4px; font: 600 10.5px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+
+/* ---------- text area: multi-line recessed field with a mono footer ---------- */
+.sc-textarea { display: grid; border-radius: var(--radius-md); }
+.sc-textarea:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sc-textarea textarea { display: block; width: 100%; min-height: 260px; padding: 14px; resize: vertical; background: none; border: 0; outline: none; color: var(--text-1); font: 400 13px/1.65 var(--font-data); }
+.sc-textarea textarea:disabled { color: var(--text-off); }
+.sc-textarea__foot { display: flex; justify-content: flex-end; padding: 6px 14px 8px; border-top: 1px solid var(--rule); font: 500 12px var(--font-data); color: var(--text-3); }
+
+/* ---------- file field: recessed well with a raised choose button ---------- */
+.sc-file { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--ctl-h); padding: 4px 6px 4px 14px; border-radius: var(--radius-md); color: var(--text-3); font-size: 13px; }
+.sc-file:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sc-file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.sc-file__name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ---------- form row: visible label, the control, then a hint or an error ---------- */
+.sc-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--space-5); align-items: start; }
+.sc-form > .sc-check-row, .sc-form > fieldset, .sc-form > .sc-form-row--wide { grid-column: 1 / -1; }
+.sc-form-row { display: grid; gap: var(--space-2); min-width: 0; margin: 0; padding: 0; border: 0; }
+.sc-form-row__label { padding: 0; font: 600 13px/1.3 var(--font-ui); color: var(--text-2); }
+.sc-form-row .sc-note { margin: 0; }
+
+/* ---------- save bar: unsaved state, Discard and the primary Save for one editable unit ----------
+   The same bar closes every editable thing (a settings form, a file, a draft), so saving always
+   looks the same. Save is the view's primary action and stays flat until there is something to save. */
+.sc-savebar { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); flex-wrap: wrap; min-width: 0; }
+.sc-savebar__status { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: 13px; color: var(--text-2); }
+.sc-savebar__status:empty { display: none; }
 
 /* ---------- status: chip, LED ---------- */
 .sc-chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font: 600 12.5px/1 var(--font-ui); color: var(--text-2); box-shadow: var(--btn-press); }
@@ -265,6 +299,20 @@
 .sc-alerts time { font: 500 12px var(--font-data); color: var(--text-3); }
 .sc-sev { display: inline-flex; align-items: center; gap: 7px; min-width: 74px; height: 26px; padding: 0 10px; border-radius: var(--radius-pill); font: 600 10.5px/1 var(--font-data); letter-spacing: .08em; color: var(--c); box-shadow: var(--btn-press); }
 .sc-sev--ok { --c: var(--ok); } .sc-sev--warn { --c: var(--warn); } .sc-sev--crit { --c: var(--crit); } .sc-sev--info { --c: var(--info); }
+
+/* ---------- list row: flat, rule-separated rows that each open something ---------- */
+.sc-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.sc-list > li + li { border-top: 1px solid var(--rule); }
+.sc-list__row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-3); width: 100%; padding: var(--row-py) var(--space-2); background: none; border: 0; border-radius: var(--radius-md); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color .15s; }
+.sc-list__row--plain { grid-template-columns: minmax(0, 1fr) auto auto; }
+.sc-list__row:hover { background: var(--surface-down); }
+.sc-list__row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sc-list__lead { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-md); color: var(--text-2); }
+.sc-list__body { min-width: 0; }
+.sc-list__body b { display: block; overflow: hidden; font-weight: 600; font-size: 14px; white-space: nowrap; text-overflow: ellipsis; }
+.sc-list__body span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--text-3); }
+.sc-list__row > .sc-ic { width: 16px; height: 16px; color: var(--text-3); }
+.sc-list__empty { padding: var(--row-py) 0; color: var(--text-3); font-size: 13px; }
 
 /* ---------- data table ---------- */
 .sc-table-wrap { max-width: 100%; overflow-x: auto; }
