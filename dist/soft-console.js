@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"BarChart"},{"name":"LineChart"},{"name":"DataTable"}]} */
+/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"BarChart"},{"name":"LineChart"},{"name":"DataTable"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"ListRow"},{"name":"FormRow"},{"name":"ToggleGroup"},{"name":"TextArea"},{"name":"FileField"},{"name":"SaveBar"},{"name":"Callout"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Toast"},{"name":"Disclosure"},{"name":"Readouts"},{"name":"CodeBlock"},{"name":"SegmentBars"}]} */
 /* Soft Console helpers. Plain script, no dependencies. Exposes window.SoftConsole.
    Markup and styling live in bundle.css; this file draws the instruments and wires interactions. */
 (function () {
@@ -602,7 +602,7 @@
   }
 
   window.SoftConsole = {
-    version: '1.1.0',
+    version: '1.2.0',
     themes: THEMES.slice(),
     init: init,
     setTheme: setTheme,
