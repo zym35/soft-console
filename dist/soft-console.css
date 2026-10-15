@@ -57,6 +57,11 @@
 .sc-btn--primary:disabled { background: var(--surface); } /* drop the accent fill; .sc-btn:disabled below flattens the rest */
 .sc-btn--ghost { background: transparent; border-color: transparent; box-shadow: var(--btn-flat); color: var(--text-2); }
 .sc-btn--ghost:hover { color: var(--text-1); box-shadow: var(--btn-flat); }
+/* danger: destructive or high-risk actions. Crit label and a faint crit glow on hover, never a fill,
+   so the one accent primary per view stays the loudest control. Disabled falls back to the flat state. */
+.sc-btn--danger { color: var(--crit); }
+.sc-btn--danger:hover:not(:disabled) { color: var(--crit); box-shadow: var(--btn-hover), 0 0 18px -6px color-mix(in srgb, var(--crit) 70%, transparent); }
+.sc-btn--danger:active:not(:disabled) { box-shadow: var(--btn-press), 0 0 14px -6px color-mix(in srgb, var(--crit) 70%, transparent); }
 .sc-btn:disabled { box-shadow: var(--btn-flat); border-color: var(--rule); color: var(--text-off); cursor: not-allowed; }
 .sc-btn:disabled > * { transform: none; }
 .sc-btn--sm { height: calc(var(--ctl-h) - 10px); padding: 0 14px; font-size: 13px; }
@@ -72,6 +77,7 @@
 .sc-btn::after, .sc-segmented > button::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
 .sc-segmented > button::after, .sc-btn--sm::after { left: 8px; right: 8px; }
 .sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after { transform: none; }
+.sc-btn--danger::after { border-top-color: var(--crit); }
 
 /* ---------- segmented control ---------- */
 .sc-segmented { display: inline-flex; gap: 4px; padding: 5px; border-radius: calc(var(--radius-md) + 3px); }

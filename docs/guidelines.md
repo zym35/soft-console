@@ -51,6 +51,8 @@ Contrast on `surface`, measured per palette:
 
 `ok`, `warn`, `crit` and `info` mean status and nothing else. Every signal appears beside a word (Online, Degraded, Offline, Syncing) so a state never relies on color alone. Blink (`sc-led--blink`) only for something failing right now, one per view at most.
 
+One exception: the label of a destructive or high-risk action may be set in `crit` (`.sc-btn--danger`). Never as a fill, and the action still confirms in a dialog.
+
 ### Displays
 
 - **Setpoints are reflective.** Numbers a person sets (thresholds, limits, targets) go on `lcd-glass` with `lcd-ink` segments and `lcd-ghost` unlit segments.
