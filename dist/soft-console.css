@@ -74,9 +74,9 @@
 /* selected marker: an accent underline across the item's inner width.
    A 2px border (borders snap to whole pixels) at a whole-pixel offset, untransformed at rest,
    so it renders as heavy as the label's strokes at every size. */
-.sc-btn::after, .sc-segmented > button::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
+.sc-btn::after, .sc-segmented > button::after, .sc-nav-item::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
 .sc-segmented > button::after, .sc-btn--sm::after { left: 8px; right: 8px; }
-.sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after { transform: none; }
+.sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { transform: none; }
 .sc-btn--danger::after { border-top-color: var(--crit); }
 
 /* ---------- segmented control ---------- */
@@ -84,6 +84,24 @@
 .sc-segmented > button { position: relative; height: calc(var(--ctl-h) - 10px); padding: 0 14px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 13px/1 var(--font-ui); letter-spacing: .03em; cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
 .sc-segmented > button:hover { color: var(--text-1); }
 .sc-segmented > button[aria-pressed="true"] { box-shadow: var(--btn-press); color: var(--accent-text); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+
+/* ---------- side nav: labeled navigation rail; the current page presses in like a selected segment ---------- */
+.sc-sidenav { display: grid; gap: var(--space-1); }
+.sc-nav-item { position: relative; display: flex; align-items: center; gap: var(--space-3); height: calc(var(--ctl-h) - 2px); padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid transparent; color: var(--text-2); font: 600 14px/1 var(--font-ui); text-decoration: none; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
+.sc-nav-item .sc-ic { width: 18px; height: 18px; }
+.sc-nav-item:hover { color: var(--text-1); }
+.sc-nav-item[aria-current="page"] { color: var(--accent-text); box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+.sc-nav-group { display: grid; gap: 2px; margin: 0 0 var(--space-2) 21px; padding-left: var(--space-2); border-left: 1px solid var(--rule); }
+.sc-nav-group .sc-nav-item { height: calc(var(--ctl-h) - 8px); font-size: 13px; font-weight: 500; }
+
+/* ---------- breadcrumb ---------- */
+.sc-crumbs { display: flex; align-items: center; gap: var(--space-2); font: 600 14px/1 var(--font-ui); color: var(--text-1); }
+.sc-crumbs a { color: var(--text-3); text-decoration: none; }
+.sc-crumbs a:hover { color: var(--text-1); }
+.sc-crumbs .sc-ic { width: 14px; height: 14px; color: var(--text-off); }
+
+/* ---------- avatar: initials on a convex disc ---------- */
+.sc-avatar { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font: 600 13px/1 var(--font-ui); color: var(--accent-text); background: linear-gradient(145deg, var(--surface-up), var(--surface-down)); }
 
 /* ---------- switch: inset track, raised knob with an inset accent ring when on ---------- */
 @property --sc-ring { syntax: "<color>"; inherits: false; initial-value: transparent; }
