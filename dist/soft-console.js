@@ -574,7 +574,7 @@
   }
 
   window.SoftConsole = {
-    version: '1.2.0',
+    version: '1.2.1',
     themes: THEMES.slice(),
     init: init,
     setTheme: setTheme,
