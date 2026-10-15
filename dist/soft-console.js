@@ -7,6 +7,7 @@
   var THEMES = ['graphite-teal', 'carbon-cyan', 'basalt-lime'];
   var reduced = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var uid = 0;
 
   /* ---------- preferences ---------- */
@@ -66,6 +67,73 @@
     el.classList.add('sc-seg7');
     el.innerHTML = '<svg viewBox="-6 -1 ' + (w + 12) + ' ' + (SH + 2) + '" role="img" aria-label="' + String(text).trim() + '"><g transform="skewX(-6)">' + parts + '</g></svg>';
     return el;
+  }
+
+  /* ---------- segment bars: a bar graph on the segment display's glass ----------
+     glass: a .sc-display__glass. values: numbers. opts:
+       format(v) -> { text, unit }  text uses seven-segment characters (0-9 . -); unit sits beside it
+       labels, names                 short x labels and full names (readout and accessible label)
+       levels (10), digits (5), max (nice max of values), maxLabels (8), label, totalLabel, stateLabel
+     Pointer or keyboard (arrows, Home, End, Escape) moves a cursor that drives the readout. */
+  function niceMax(v) {
+    if (!(v > 0)) return 1;
+    var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)), n = v / p;
+    return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  }
+  function segbars(glass, values, opts) {
+    var o = opts || {};
+    if (!values || !values.length) throw new Error('SoftConsole.segbars needs at least one value');
+    var levels = o.levels || 10, digits = o.digits || 5;
+    var fmt = o.format || function (v) { return { text: String(+v.toFixed(2)), unit: '' }; };
+    var max = o.max || niceMax(Math.max.apply(null, values));
+    var labels = o.labels || values.map(function (v, i) { return String(i + 1); });
+    var names = o.names || labels, last = values.length - 1;
+    var every = Math.max(1, Math.ceil(values.length / (o.maxLabels || 8)));
+    var total = values.reduce(function (a, b) { return a + b; }, 0);
+    var cursor = -1;
+    glass.innerHTML =
+      '<div class="sc-display__top"><span data-part="what"></span><span data-part="state"></span></div>'
+      + '<div class="sc-segbars">'
+      + '<div class="sc-segbars__head"><div class="sc-display__row"><div data-part="digits"></div><span class="sc-segbars__unit" data-part="unit"></span></div></div>'
+      + '<div class="sc-segbars__body"><div class="sc-segbars__scale" aria-hidden="true"><span>' + esc(fmt(max).text) + '</span><span>' + esc(fmt(max / 2).text) + '</span><span>0</span></div>'
+      + '<div class="sc-segbars__graph" tabindex="0" role="img"><div class="sc-segbars__cols"></div><div class="sc-segbars__x" aria-hidden="true"></div></div></div></div>';
+    var part = function (n) { return glass.querySelector('[data-part="' + n + '"]'); };
+    var graph = glass.querySelector('.sc-segbars__graph'), colsEl = glass.querySelector('.sc-segbars__cols'), xEl = glass.querySelector('.sc-segbars__x');
+    xEl.classList.toggle('sc-segbars__x--sparse', every > 1);
+    graph.style.setProperty('--col-gap', values.length > 14 ? '3px' : '8px');
+    graph.setAttribute('aria-label', (o.label || 'Bar graph') + ': ' + values.map(function (v, i) { var f = fmt(v); return names[i] + ' ' + f.text + (f.unit ? ' ' + f.unit : ''); }).join(', '));
+    colsEl.innerHTML = values.map(function (v, c) {
+      var lit = v > 0 ? Math.max(1, Math.round(v / max * levels)) : 0, segs = '';
+      for (var k = 0; k < levels; k++) segs += '<i' + (k < lit ? ' class="on" style="--k:' + k + ';--c:' + c + '"' : '') + '></i>';
+      return '<div class="sc-segbars__col' + (c === last ? ' is-now' : '') + '" data-i="' + c + '">' + segs + '</div>';
+    }).join('');
+    xEl.innerHTML = labels.map(function (l, i) {
+      var shown = i === last || (i % every === 0 && last - i >= every);
+      return '<span class="' + (i === last ? 'is-now' : '') + '">' + (shown ? esc(l) : '') + '</span>';
+    }).join('');
+    function show(i) {
+      cursor = i;
+      $$('.is-cursor', glass).forEach(function (e) { e.classList.remove('is-cursor'); });
+      graph.classList.toggle('has-cursor', i >= 0);
+      var f = fmt(i >= 0 ? values[i] : total);
+      part('what').textContent = i >= 0 ? names[i] : (o.totalLabel || 'Total');
+      part('state').textContent = i >= 0 ? (i === last ? 'Latest' : 'Day') : (o.stateLabel || 'Live');
+      part('unit').textContent = f.unit || '';
+      segment(part('digits'), f.text, digits);
+      if (i >= 0) { colsEl.children[i].classList.add('is-cursor'); xEl.children[i].classList.add('is-cursor'); }
+    }
+    colsEl.addEventListener('pointerover', function (e) { var col = e.target.closest('.sc-segbars__col'); if (col) show(+col.dataset.i); });
+    colsEl.addEventListener('pointerleave', function () { if (document.activeElement !== graph) show(-1); });
+    graph.addEventListener('keydown', function (e) {
+      var step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (e.key === 'Home') { e.preventDefault(); show(0); }
+      else if (e.key === 'End') { e.preventDefault(); show(last); }
+      else if (e.key === 'Escape') { show(-1); }
+      else if (step) { e.preventDefault(); show(Math.max(0, Math.min(last, cursor < 0 ? last : cursor + step))); }
+    });
+    graph.addEventListener('focusout', function () { show(-1); });
+    show(-1);
+    return glass;
   }
 
   /* ---------- dial gauge ---------- */
@@ -515,6 +583,10 @@
     $$('[data-sc-bars]', r).forEach(function (el) {
       bars(el, list(el.getAttribute('data-sc-bars')).map(Number), { labels: el.dataset.labels ? list(el.dataset.labels) : null, names: el.dataset.names ? list(el.dataset.names) : null, unit: el.dataset.unit, max: num(el.dataset.max, 100), selected: el.dataset.selected == null ? null : num(el.dataset.selected, 0) });
     });
+    $$('[data-sc-segbars]', r).forEach(function (el) {
+      var d = el.dataset, unit = d.unit || '';
+      segbars(el, list(el.getAttribute('data-sc-segbars')).map(Number), { labels: d.labels ? list(d.labels) : null, names: d.names ? list(d.names) : null, format: function (v) { return { text: String(+v.toFixed(2)), unit: unit }; }, max: num(d.max, 0), levels: num(d.levels, 0), digits: num(d.digits, 0), maxLabels: num(d.maxLabels, 0), label: d.label, totalLabel: d.totalLabel, stateLabel: d.stateLabel });
+    });
     $$('[data-sc-jog]', r).forEach(function (el) {
       if (el.dataset.scBound) return;
       el.dataset.scBound = '1';
@@ -536,6 +608,8 @@
     setTheme: setTheme,
     setDensity: setDensity,
     segment: segment,
+    segbars: segbars,
+    niceMax: niceMax,
     gauge: gauge,
     spark: spark,
     lines: lines,

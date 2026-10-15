@@ -58,7 +58,7 @@ One exception: the label of a destructive or high-risk action may be set in `cri
 - **Setpoints are reflective.** Numbers a person sets (thresholds, limits, targets) go on `lcd-glass` with `lcd-ink` segments and `lcd-ghost` unlit segments.
 - **Live values are backlit.** Numbers the system reports go on `vfd-glass` with `accent-text` segments, `vfd-ghost` unlit segments and a soft `accent-glow`.
 
-The style tells people which kind of number they are looking at, so never swap them.
+The style tells people which kind of number they are looking at, so never swap them. SegmentBars follow the same rule: a series the system reports goes on live glass, and a series a person sets goes on setpoint glass.
 
 ### Chart color
 
@@ -124,5 +124,5 @@ Outline icons on a 24px grid at a 1.8 stroke, round caps and joins, colored with
 
 1. Load `dist/tokens.css`, then `dist/soft-console.css`, then `dist/soft-console.js` (a plain script; it defines `window.SoftConsole` and needs no libraries).
 2. Set `data-theme` on `<html>` (default `graphite-teal`) and, for dense screens, `data-density="compact"`.
-3. Write the markup from each component's guidelines and call `SoftConsole.init(root)`. It mounts icons, wires selection groups, switches, toggles and sliders, upgrades selects in fields into Soft Console listboxes, and draws every `data-sc-seg`, `data-sc-gauge`, `data-sc-spark`, `data-sc-bars`, `data-sc-jog` and `data-sc-count` element. Call it again after you add markup.
-4. Draw instruments from data with `SoftConsole.segment`, `.gauge`, `.spark`, `.lines`, `.bars` and `.jog`.
+3. Write the markup from each component's guidelines and call `SoftConsole.init(root)`. It mounts icons, wires selection groups, switches, toggles and sliders, upgrades selects in fields into Soft Console listboxes, draws every `data-sc-seg`, `data-sc-segbars`, `data-sc-gauge`, `data-sc-spark`, `data-sc-bars`, `data-sc-jog` and `data-sc-count` element, and wires `data-sc-dialog` buttons to open their dialog. Call it again after you add markup.
+4. Draw instruments from data with `SoftConsole.segment`, `.segbars`, `.gauge`, `.spark`, `.lines`, `.bars` and `.jog`. Open and close dialogs with `SoftConsole.dialog(scrim)`.

@@ -243,6 +243,34 @@
 .sc-seg7 .on { fill: var(--seg-on, var(--accent-text)); }
 .sc-seg7 .off { fill: var(--seg-ghost, var(--vfd-ghost)); }
 
+/* ---------- segment bars: a bar graph on the segment display's glass ----------
+   Put it in .sc-display__glass. Each column is a stack of discrete segments, like a VFD level meter:
+   lit segments use the display's --seg-on, unlit ones stay faintly visible as --seg-ghost. The
+   seven-segment readout shows the total, or the column under the pointer or keyboard cursor.
+   Columns are capped at 40px and spread evenly, so wide panels keep the meter look. Drawn by SoftConsole.segbars(). */
+.sc-segbars { display: grid; gap: 10px; min-width: 0; }
+.sc-segbars__head .sc-seg7 { font-size: 40px; }
+.sc-segbars__unit { padding-bottom: 3px; font: 600 13px/1 var(--font-data); }
+.sc-segbars__body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; }
+.sc-segbars__scale { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 20px; font: 600 9.5px/1 var(--font-data); letter-spacing: .06em; text-align: right; opacity: .62; }
+.sc-segbars__graph { display: grid; gap: 6px; min-width: 0; outline: none; border-radius: 4px; }
+.sc-segbars__graph:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.sc-segbars__cols, .sc-segbars__x { display: flex; justify-content: space-between; gap: var(--col-gap, 6px); }
+.sc-segbars__cols { align-items: stretch; height: 132px; }
+.sc-segbars__col { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; flex-direction: column-reverse; gap: 3px; cursor: default; }
+.sc-segbars__col i { flex: 1; border-radius: 1.5px; background: var(--seg-ghost); transition: background-color .15s, opacity .15s; }
+.sc-segbars__col i.on { background: var(--seg-on); opacity: .58; animation: sc-seg-light .35s steps(1, end) calc(var(--k) * 28ms + var(--c) * 18ms) backwards; }
+.sc-segbars__col.is-now i.on, .sc-segbars__col.is-cursor i.on { opacity: 1; }
+.sc-display--live .sc-segbars__col.is-now i.on, .sc-display--live .sc-segbars__col.is-cursor i.on { box-shadow: 0 0 6px var(--accent-glow); }
+.sc-segbars__graph:hover .sc-segbars__col.is-now:not(.is-cursor) i.on, .sc-segbars__graph.has-cursor .sc-segbars__col.is-now:not(.is-cursor) i.on { opacity: .58; box-shadow: none; }
+/* labels match the columns' width. When only every nth column is labelled (--sparse), a label may
+   overflow into its unlabelled neighbours, and the first and last are pinned to the graph's edges
+   so they never leave the glass. */
+.sc-segbars__x span { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; justify-content: center; font: 600 9.5px/1 var(--font-data); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; opacity: .55; }
+.sc-segbars__x--sparse span:first-child { justify-content: flex-start; }
+.sc-segbars__x--sparse span:last-child { justify-content: flex-end; }
+.sc-segbars__x span.is-now, .sc-segbars__x span.is-cursor { opacity: 1; }
+
 /* ---------- jog wheel ---------- */
 .sc-jog-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
 .sc-jog { position: relative; height: 48px; overflow: hidden; border-radius: var(--radius-pill); cursor: ew-resize; touch-action: none; }
@@ -396,10 +424,11 @@
 @keyframes sc-grow-x { from { transform: scaleX(0); } }
 @keyframes sc-fade { from { opacity: 0; } }
 @keyframes sc-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes sc-seg-light { from { background: var(--seg-ghost); box-shadow: none; } }
 .sc-enter { animation: sc-enter var(--dur-enter) var(--ease-standard) backwards; }
 .sc-bar__tip { animation: sc-fade .3s ease calc(var(--dur-value) + .3s) backwards; }
 @media (prefers-reduced-motion: reduce) {
   [class^="sc-"], [class*=" sc-"], [class^="sc-"]::before, [class*=" sc-"]::before, [class^="sc-"]::after, [class*=" sc-"]::after,
-  .sc-gauge .val, .sc-spark svg, .sc-chart svg,
+  .sc-gauge .val, .sc-spark svg, .sc-chart svg, .sc-segbars__col i,
   .sc-root *, .sc-root *::before, .sc-root *::after { transition-duration: 0s !important; animation: none !important; }
 }
