@@ -96,6 +96,7 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 - **Pressed and selected:** `btn-press`, `accent-text`, and the accent underline under the item.
 - **Focus:** a solid 2px `accent` outline, 3px offset, on every interactive element. Never remove it.
 - **Disabled:** flattened into the surface (`btn-flat`), `rule` border, `text-off` text.
+- **Modal:** an open dialog keeps focus inside it. Escape and a click on the scrim close it, and focus returns to the control that opened it. `SoftConsole.dialog` does this for you.
 
 ## Motion
 
@@ -104,6 +105,7 @@ Motion is expressive but functional. Durations: `dur-press` for press travel, `d
 - Buttons and segments travel in when pressed; the shadow animates, it never jumps.
 - Values move like hardware: gauges sweep, digits count up, bars and meters grow in, charts reveal left to right.
 - Panels and tiles rise in once on first load (`SoftConsole.init(root, { enter: true })`), staggered by 60ms.
+- Overlays (tooltips, toasts, dialogs) are centered with the CSS `translate` property and animate only `transform`. Mixing both in `transform` makes an overlay slide sideways as it rises.
 - Under `prefers-reduced-motion`, all of it is switched off and values appear in place.
 
 ## Content
