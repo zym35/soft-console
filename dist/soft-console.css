@@ -200,6 +200,36 @@
 .sc-led--blink { animation: sc-blink 1.6s steps(2, jump-none) infinite; }
 @keyframes sc-blink { 50% { opacity: .35; } }
 
+/* ---------- callout: one inline message in a well; LED plus words ---------- */
+.sc-callout { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px var(--space-3); padding: 12px 14px; border-radius: var(--radius-md); font-size: 13.5px; color: var(--text-2); overflow-wrap: anywhere; }
+.sc-callout > .sc-led { position: relative; top: -1px; }
+.sc-callout > div { display: grid; gap: 4px; min-width: 0; }
+.sc-callout b { color: var(--c, var(--text-1)); font-weight: 600; }
+.sc-callout--ok { --c: var(--ok); } .sc-callout--warn { --c: var(--warn); } .sc-callout--crit { --c: var(--crit); } .sc-callout--info { --c: var(--info); }
+.sc-callout p { margin: 0; }
+.sc-callout .sc-btn { justify-self: start; margin-top: 6px; }
+
+/* ---------- tooltip: help text on a small raised bubble ----------
+   Centering uses the translate property; transform only carries the 4px rise,
+   so overriding one never shifts the other. */
+.sc-tip { position: relative; display: inline-flex; }
+.sc-tip__bubble { position: absolute; bottom: calc(100% + 10px); left: 50%; translate: -50% 0; z-index: 40; width: max-content; max-width: 260px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--raised-2), 0 16px 32px -12px var(--shade-lo); font: 500 12.5px/1.55 var(--font-ui); color: var(--text-2); text-align: left; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-ui) var(--ease-standard), transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
+.sc-tip--end .sc-tip__bubble { left: auto; right: 0; translate: none; }
+.sc-tip:hover .sc-tip__bubble, .sc-tip:focus-within .sc-tip__bubble { opacity: 1; transform: none; }
+
+/* ---------- dialog: raised-3 panel over a scrim; SoftConsole.dialog() opens and closes it ---------- */
+.sc-scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--shade-lo) 70%, transparent); backdrop-filter: blur(2px); }
+.sc-scrim[hidden] { display: none; }
+.sc-dialog { display: grid; gap: var(--space-4); width: min(100%, 480px); max-height: calc(100vh - 32px); overflow: auto; padding: var(--pad-panel); border-radius: var(--radius-xl); animation: sc-rise var(--dur-ui) var(--ease-standard); }
+.sc-dialog:focus-visible { outline: none; }
+.sc-dialog__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.sc-dialog__title { margin: 0; font: 600 17px/1.4 var(--font-ui); }
+.sc-dialog p { margin: 0; color: var(--text-2); line-height: 1.6; }
+.sc-dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-3); }
+
+/* ---------- toast: transient confirmation, bottom center; centered with translate so the rise never shifts it ---------- */
+.sc-toast { position: fixed; bottom: var(--space-6); left: 50%; z-index: 60; display: inline-flex; align-items: center; gap: var(--space-3); height: var(--ctl-h); padding: 0 18px; border-radius: var(--radius-pill); font: 600 13.5px/1 var(--font-ui); color: var(--text-1); translate: -50% 0; box-shadow: var(--raised-2), 0 16px 32px -12px var(--shade-lo); animation: sc-rise var(--dur-ui) var(--ease-standard); }
+
 /* ---------- segment display ---------- */
 .sc-display { padding: 9px; border-radius: var(--radius-lg); }
 .sc-display__glass { --seg-on: var(--lcd-ink); --seg-ghost: var(--lcd-ghost); display: grid; gap: var(--space-2); padding: 12px 18px 16px; border-radius: max(4px, calc(var(--radius-lg) - 8px)); color: var(--lcd-ink); background: linear-gradient(168deg, var(--lcd-sheen), transparent 42%), var(--lcd-glass); box-shadow: inset 2px 3px 7px var(--lcd-shade), inset -1px -1px 0 var(--lcd-sheen); }
@@ -342,6 +372,7 @@
 @keyframes sc-grow-y { from { transform: scaleY(0); } }
 @keyframes sc-grow-x { from { transform: scaleX(0); } }
 @keyframes sc-fade { from { opacity: 0; } }
+@keyframes sc-rise { from { opacity: 0; transform: translateY(10px); } }
 .sc-enter { animation: sc-enter var(--dur-enter) var(--ease-standard) backwards; }
 .sc-bar__tip { animation: sc-fade .3s ease calc(var(--dur-value) + .3s) backwards; }
 @media (prefers-reduced-motion: reduce) {

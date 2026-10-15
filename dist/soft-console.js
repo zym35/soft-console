@@ -394,6 +394,45 @@
     return native.scSelect;
   }
 
+  /* ---------- dialog: modal over a scrim. Traps focus, closes on Escape, a scrim click or
+     [data-sc-close], and returns focus to the opener. ---------- */
+  var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  function dialog(scrim) {
+    if (!scrim || !scrim.classList.contains('sc-scrim')) throw new Error('SoftConsole.dialog needs a .sc-scrim element');
+    if (scrim.scDialog) return scrim.scDialog;
+    var box = scrim.querySelector('.sc-dialog') || scrim, opener = null;
+    if (!box.hasAttribute('role')) box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    if (!box.hasAttribute('tabindex')) box.tabIndex = -1;
+    var focusables = function () { return $$(FOCUSABLE, box).filter(function (el) { return el.getClientRects().length > 0; }); };
+    function onKey(e) {
+      if (e.defaultPrevented) return;
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key !== 'Tab') return;
+      var f = focusables(), first = f[0], last = f[f.length - 1], at = document.activeElement;
+      if (!f.length) { e.preventDefault(); box.focus(); }
+      else if (e.shiftKey && (at === first || !box.contains(at) || at === box)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (at === last || !box.contains(at))) { e.preventDefault(); first.focus(); }
+    }
+    function open(from) {
+      if (!scrim.hidden) return;
+      opener = from || document.activeElement;
+      scrim.hidden = false;
+      document.addEventListener('keydown', onKey);
+      (box.querySelector('[autofocus]') || focusables()[0] || box).focus();
+    }
+    function close() {
+      if (scrim.hidden) return;
+      scrim.hidden = true;
+      document.removeEventListener('keydown', onKey);
+      if (opener && opener.focus) opener.focus();
+      scrim.dispatchEvent(new CustomEvent('sc-close', { bubbles: true }));
+    }
+    scrim.addEventListener('click', function (e) { if (e.target === scrim || e.target.closest('[data-sc-close]')) close(); });
+    scrim.scDialog = { open: open, close: close, get isOpen() { return !scrim.hidden; } };
+    return scrim.scDialog;
+  }
+
   /* ---------- icons: outline, 24px grid, 1.8 stroke ---------- */
   var ICONS = {
     home: '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
@@ -463,6 +502,11 @@
       sync();
     });
     $$('.sc-field select', r).forEach(select);
+    $$('[data-sc-dialog]', r).forEach(function (b) {
+      if (b.dataset.scBound) return;
+      b.dataset.scBound = '1';
+      b.addEventListener('click', function () { dialog(document.querySelector(b.getAttribute('data-sc-dialog'))).open(b); });
+    });
     $$('[data-sc-seg]', r).forEach(function (el) { segment(el, el.getAttribute('data-sc-seg'), num(el.dataset.digits, 0)); });
     $$('[data-sc-gauge]', r).forEach(function (el) {
       gauge(el, num(el.getAttribute('data-sc-gauge'), 0), { min: num(el.dataset.min, 0), max: num(el.dataset.max, 100), unit: el.dataset.unit, label: el.dataset.label });
@@ -498,6 +542,7 @@
     bars: bars,
     jog: jog,
     select: select,
+    dialog: dialog,
     countUp: countUp,
     icon: icon,
     mountIcons: mountIcons,
