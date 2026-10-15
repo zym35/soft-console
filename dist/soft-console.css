@@ -93,7 +93,7 @@
 .sc-togglegroup > button:disabled { color: var(--text-off); cursor: not-allowed; }
 
 /* ---------- side nav: labeled navigation rail; the current page presses in like a selected segment ---------- */
-.sc-sidenav { display: grid; gap: var(--space-1); }
+.sc-sidenav { display: grid; gap: var(--space-1); align-content: start; } /* items keep their height when the rail stretches */
 .sc-nav-item { position: relative; display: flex; align-items: center; gap: var(--space-3); height: calc(var(--ctl-h) - 2px); padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid transparent; color: var(--text-2); font: 600 14px/1 var(--font-ui); text-decoration: none; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
 .sc-nav-item .sc-ic { width: 18px; height: 18px; }
 .sc-nav-item:hover { color: var(--text-1); }
