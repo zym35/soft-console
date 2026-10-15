@@ -255,7 +255,7 @@
 .sc-segbars__scale { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 20px; font: 600 9.5px/1 var(--font-data); letter-spacing: .06em; text-align: right; opacity: .62; }
 .sc-segbars__graph { display: grid; gap: 6px; min-width: 0; outline: none; border-radius: 4px; }
 .sc-segbars__graph:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.sc-segbars__cols, .sc-segbars__x { display: flex; justify-content: space-between; gap: var(--col-gap, 6px); }
+.sc-segbars__cols, .sc-segbars__x { display: flex; justify-content: space-between; gap: var(--col-gap, 6px); min-width: 0; } /* the labels' min-content must not widen the graph in narrow panels */
 .sc-segbars__cols { align-items: stretch; height: 132px; }
 .sc-segbars__col { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; flex-direction: column-reverse; gap: 3px; cursor: default; }
 .sc-segbars__col i { flex: 1; border-radius: 1.5px; background: var(--seg-ghost); transition: background-color .15s, opacity .15s; }
