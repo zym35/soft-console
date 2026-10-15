@@ -28,6 +28,8 @@
   a { color: var(--accent-text); }
   .cta { text-decoration: none; }
   .cta .sc-ic { width: 16px; height: 16px; }
+  .static-dialog { position: relative; inset: auto; padding: var(--space-5); border-radius: var(--radius-lg); }
+  .static-toast { position: static; translate: none; justify-self: start; }
   @media (max-width: 760px) {
     .top { position: static; }
     .prefs { order: 3; width: 100%; }
@@ -37,7 +39,7 @@
 <body class="sc-root">
 <header class="top">
   <div class="bar">
-    <div class="brand">Soft Console<span>v1.1.0 · components</span></div>
+    <div class="brand">Soft Console<span>v1.2.0 · components</span></div>
     <div class="prefs">
       <div><span class="sc-label">Palette</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="palette" role="group" aria-label="Palette">
@@ -60,6 +62,39 @@
   <section class="group" aria-labelledby="g-Foundations">
     <h2 id="g-Foundations" class="t-title">Foundations</h2>
     <div class="cards">
+      <article class="sc-panel sc-raised-2 card" id="Avatar">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Avatar</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Avatar.md">Guidelines</a></div>
+        <p class="summary">An avatar shows the signed-in person's initials on a convex disc.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:flex;align-items:center;gap:12px"><span class="sc-avatar sc-raised-1">K</span><span style="color:var(--text-2)">Signed in as operator</span></div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Breadcrumb">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Breadcrumb</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Breadcrumb.md">Guidelines</a></div>
+        <p class="summary">A breadcrumb shows the trail to a nested page.</p>
+<div class="sc-root" style="padding:18px 20px">
+<nav class="sc-crumbs" aria-label="Breadcrumb"><a href="#">Home</a><svg class="sc-ic" aria-hidden="true"><use href="#sc-i-chevron-right"/></svg><a href="#">Agents</a><svg class="sc-ic" aria-hidden="true"><use href="#sc-i-chevron-right"/></svg><span aria-current="page">Knowledge agent</span></nav>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Disclosure">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Disclosure</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Disclosure.md">Guidelines</a></div>
+        <p class="summary">A disclosure is a row that opens to reveal more detail.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="max-width:460px">
+<details class="sc-disclosure" open><summary><svg class="sc-ic"><use href="#sc-i-chevron"/></svg>Live activation requirements</summary><div class="sc-disclosure__body"><p class="sc-note" style="margin:0">Three complete healthy execution shadow market sessions required.</p></div></details>
+<details class="sc-disclosure"><summary><svg class="sc-ic"><use href="#sc-i-chevron"/></svg>17 evidence snapshots</summary><div class="sc-disclosure__body"><p class="sc-note" style="margin:0">Snapshots from the last 30 days, newest first.</p></div></details>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
       <article class="sc-panel sc-raised-2 card" id="Panel">
         <div class="sc-panel__head"><h3 class="sc-panel__title">Panel</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Panel.md">Guidelines</a></div>
         <p class="summary">A panel is the raised container that holds one instrument, chart or list, with a title row on top.</p>
@@ -72,6 +107,29 @@
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="SideNav">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">SideNav</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/SideNav.md">Guidelines</a></div>
+        <p class="summary">A side nav is a labeled navigation rail; the current page presses in like a selected segment.</p>
+<div class="sc-root" style="padding:18px 20px">
+<nav class="sc-sidenav" id="demo-nav" aria-label="Demo navigation" style="max-width:240px">
+  <a class="sc-nav-item" href="#" aria-current="page"><svg class="sc-ic"><use href="#sc-i-grid"/></svg><span>Home</span></a>
+  <div class="sc-nav-group">
+    <a class="sc-nav-item" href="#"><svg class="sc-ic"><use href="#sc-i-chart"/></svg><span>Investing agent</span></a>
+    <a class="sc-nav-item" href="#"><svg class="sc-ic"><use href="#sc-i-server"/></svg><span>Maintenance agent</span></a>
+  </div>
+  <a class="sc-nav-item" href="#"><svg class="sc-ic"><use href="#sc-i-gear"/></svg><span>Settings</span></a>
+</nav>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+document.getElementById('demo-nav').addEventListener('click', function (e) {
+  var a = e.target.closest('.sc-nav-item');
+  if (!a) return;
+  e.preventDefault();
+  this.querySelectorAll('.sc-nav-item').forEach(function (x) { if (x === a) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current'); });
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="Surface">
@@ -105,10 +163,41 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <div style="display:grid;gap:14px;max-width:420px"><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><button type="button" class="sc-btn sc-btn--primary"><span data-sc-icon="bolt"></span><span>Deploy</span></button>
 <button type="button" class="sc-btn"><span data-sc-icon="refresh"></span><span>Restart</span></button></div><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><button type="button" class="sc-btn" data-sc-toggle aria-pressed="true"><span>Paused</span></button>
 <button type="button" class="sc-btn sc-btn--ghost"><span>Cancel</span></button>
-<button type="button" class="sc-btn" disabled><span>Disabled</span></button></div></div>
+<button type="button" class="sc-btn" disabled><span>Disabled</span></button></div><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><button type="button" class="sc-btn sc-btn--danger"><span>Stop service…</span></button>
+<button type="button" class="sc-btn sc-btn--danger sc-btn--sm"><span>Cancel order</span></button>
+<button type="button" class="sc-btn sc-btn--danger" disabled><span>Enable live trading</span></button></div><div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><button type="button" class="sc-btn sc-btn--primary" disabled><span>Save changes</span></button>
+<span class="sc-note">Disabled primary and danger buttons go flat.</span></div></div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Dialog">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Dialog</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Dialog.md">Guidelines</a></div>
+        <p class="summary">A dialog is a raised-3 panel over a shade scrim, for confirmations and short details.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:14px;max-width:460px">
+<section class="sc-dialog sc-raised-3 static-dialog" aria-label="Dialog preview">
+  <div class="sc-dialog__head"><h4 class="sc-dialog__title">Stop service?</h4><button type="button" class="sc-btn sc-ibtn sc-btn--sm sc-btn--ghost" aria-label="Close" tabindex="-1"><span data-sc-icon="close"></span></button></div>
+  <p>Monitoring stops. Existing broker orders and positions persist.</p>
+  <div class="sc-dialog__actions"><button type="button" class="sc-btn sc-btn--ghost" tabindex="-1"><span>Cancel</span></button><button type="button" class="sc-btn sc-btn--danger" tabindex="-1"><span>Stop service</span></button></div>
+</section>
+<button type="button" class="sc-btn sc-btn--danger" data-sc-dialog="#demo-dialog" style="justify-self:start"><span>Stop service…</span></button>
+<div class="sc-scrim" id="demo-dialog" hidden>
+  <section class="sc-dialog sc-raised-3" role="dialog" aria-modal="true" aria-labelledby="demo-dialog-title">
+    <div class="sc-dialog__head"><h4 class="sc-dialog__title" id="demo-dialog-title">Stop service?</h4><button type="button" class="sc-btn sc-ibtn sc-btn--sm sc-btn--ghost" aria-label="Close" data-sc-close><span data-sc-icon="close"></span></button></div>
+    <p>Monitoring stops. Existing broker orders and positions persist.</p>
+    <div class="sc-dialog__actions"><button type="button" class="sc-btn sc-btn--ghost" data-sc-close><span>Cancel</span></button><button type="button" class="sc-btn sc-btn--danger" id="demo-dialog-go"><span>Stop service</span></button></div>
+  </section>
+</div>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+document.getElementById('demo-dialog-go').addEventListener('click', function () {
+  SoftConsole.dialog(document.getElementById('demo-dialog')).close();
+  if (window.demoToast) demoToast('Service stopped');
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="IconButton">
@@ -121,6 +210,19 @@ SoftConsole.init(document.currentScript.previousElementSibling);
   <button type="button" class="sc-btn sc-ibtn" aria-label="Metrics" aria-pressed="false"><span data-sc-icon="chart"></span></button>
   <button type="button" class="sc-btn sc-ibtn" aria-label="Alerts" aria-pressed="false"><span data-sc-icon="bell"></span></button>
   <button type="button" class="sc-btn sc-ibtn" aria-label="Settings" aria-pressed="false"><span data-sc-icon="gear"></span></button>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="SaveBar">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">SaveBar</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/SaveBar.md">Guidelines</a></div>
+        <p class="summary">A save bar closes every editable unit (a settings form, a file, a draft) with the same unsaved state, Discard and primary Save.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:14px;max-width:460px">
+<div class="sc-savebar"><span class="sc-savebar__status"><span class="sc-led sc-led--warn"></span>Unsaved changes</span><button type="button" class="sc-btn sc-btn--ghost"><span>Discard</span></button><button type="button" class="sc-btn sc-btn--primary"><span>Save changes</span></button></div>
+<div class="sc-savebar"><span class="sc-savebar__status"></span><button type="button" class="sc-btn sc-btn--ghost" disabled><span>Discard</span></button><button type="button" class="sc-btn sc-btn--primary" disabled><span>Save AGENTS.md</span></button></div>
 </div>
 </div>
 <script>
@@ -169,6 +271,19 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 SoftConsole.init(document.currentScript.previousElementSibling);
 </script>
       </article>
+      <article class="sc-panel sc-raised-2 card" id="ToggleGroup">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">ToggleGroup</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/ToggleGroup.md">Guidelines</a></div>
+        <p class="summary">A toggle group is a segmented control in which each option turns on or off on its own.</p>
+<div class="sc-root" style="padding:18px 20px">
+<fieldset class="sc-form-row"><legend class="sc-form-row__label">Days of the week</legend>
+<div class="sc-togglegroup sc-raised-1" role="group" aria-label="Days of the week">
+  <button type="button" data-sc-toggle aria-pressed="true">Mon</button><button type="button" data-sc-toggle aria-pressed="false">Tue</button><button type="button" data-sc-toggle aria-pressed="false">Wed</button><button type="button" data-sc-toggle aria-pressed="false">Thu</button><button type="button" data-sc-toggle aria-pressed="true">Fri</button><button type="button" data-sc-toggle aria-pressed="false">Sat</button><button type="button" data-sc-toggle aria-pressed="false">Sun</button>
+</div></fieldset>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
     </div>
   </section>
 
@@ -182,6 +297,35 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <div style="display:grid;gap:14px;max-width:420px"><div class="sc-field sc-inset-1"><span data-sc-icon="search"></span><input id="f-1" type="search" placeholder="Search nodes" aria-label="Search nodes"></div>
 <div class="sc-field sc-inset-1"><input id="f-2" class="sc-mono" type="text" inputmode="decimal" value="78.0" aria-label="Temperature limit"><span class="sc-field__unit">°C</span></div>
 <div class="sc-field sc-inset-1"><select id="f-3" aria-label="Region"><option>eu-central · Frankfurt</option><option>us-east · Virginia</option></select><span data-sc-icon="chevron"></span></div></div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="FileField">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">FileField</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/FileField.md">Guidelines</a></div>
+        <p class="summary">A file field is a file picker drawn as a recessed well, with a small raised Choose file button.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:8px;max-width:460px">
+<label class="sc-file sc-inset-1"><span class="sc-file__name">No file chosen</span><input type="file" accept=".zip" aria-label="Snapshot ZIP"><span class="sc-btn sc-btn--sm" aria-hidden="true"><span>Choose file</span></span></label>
+<p class="sc-note" style="margin:0">ZIP, up to 50 MB.</p>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+document.querySelectorAll('.sc-file input').forEach(function (input) {
+  input.addEventListener('change', function () { input.parentNode.querySelector('.sc-file__name').textContent = input.files.length ? input.files[0].name : 'No file chosen'; });
+});
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="FormRow">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">FormRow</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/FormRow.md">Guidelines</a></div>
+        <p class="summary">A form row puts a visible label above any control, then an optional hint or error.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div class="sc-form">
+  <label class="sc-form-row"><span class="sc-form-row__label">Monthly API budget</span><div class="sc-field sc-inset-1"><input class="sc-mono" value="5" aria-label="Monthly API budget"><span class="sc-field__unit">USD</span></div><p class="sc-note">Applies only if API key mode is restored.</p></label>
+  <label class="sc-form-row"><span class="sc-form-row__label">Reasoning effort</span><div class="sc-field sc-inset-1"><select aria-label="Reasoning effort"><option>Low</option><option selected>Medium</option><option>High</option></select></div></label>
+</div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
@@ -224,6 +368,19 @@ document.querySelectorAll('[data-step]').forEach(function (b) {
 SoftConsole.init(document.currentScript.previousElementSibling);
 </script>
       </article>
+      <article class="sc-panel sc-raised-2 card" id="TextArea">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">TextArea</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/TextArea.md">Guidelines</a></div>
+        <p class="summary">A text area is a multi-line recessed field for documents and JSON.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div class="sc-textarea sc-inset-1" style="max-width:460px"><textarea aria-label="AGENTS.md" style="min-height:120px"># Maintenance agent
+
+## Role
+Inspect and maintain this server.</textarea><div class="sc-textarea__foot">1,284 / 24,576 bytes</div></div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
     </div>
   </section>
 
@@ -245,6 +402,20 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 SoftConsole.init(document.currentScript.previousElementSibling);
 </script>
       </article>
+      <article class="sc-panel sc-raised-2 card" id="Callout">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Callout</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Callout.md">Guidelines</a></div>
+        <p class="summary">A callout is one inline message: a save error, a notice or an import result.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:12px;max-width:460px">
+<div class="sc-callout sc-callout--crit sc-inset-1" role="alert"><span class="sc-led sc-led--crit"></span><div><b>Not saved</b><p>Configuration changed on the server. Reload to see the current values.</p></div></div>
+<div class="sc-callout sc-callout--ok sc-inset-1" role="status"><span class="sc-led sc-led--ok"></span><div><b>Article saved</b><p>Jackal X post · 9,835 characters saved as source evidence.</p></div></div>
+<div class="sc-callout sc-callout--warn sc-inset-1"><span class="sc-led sc-led--warn"></span><div><b>Import incomplete</b><p>3 of 17 snapshots were skipped.</p><button type="button" class="sc-btn sc-btn--sm"><span>Show skipped</span></button></div></div>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
       <article class="sc-panel sc-raised-2 card" id="StatusChip">
         <div class="sc-panel__head"><h3 class="sc-panel__title">StatusChip</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/StatusChip.md">Guidelines</a></div>
         <p class="summary">Status chips pair an LED with a word so a state reads at a glance and never by color alone.</p>
@@ -254,6 +425,46 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <span class="sc-chip sc-inset-1"><span class="sc-led sc-led--crit sc-led--blink"></span>Offline</span>
 <span class="sc-chip sc-inset-1"><span class="sc-led sc-led--info"></span>Syncing</span>
 <span class="sc-chip sc-inset-1"><span class="sc-led sc-led--off"></span>Standby</span></div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Toast">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Toast</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Toast.md">Guidelines</a></div>
+        <p class="summary">A toast is a short confirmation pill at the bottom center of the screen.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:14px">
+<div class="sc-toast sc-raised-2 static-toast"><span class="sc-led sc-led--ok"></span>Applied to server</div>
+<button type="button" class="sc-btn" id="demo-toast" style="justify-self:start"><span>Show toast</span></button>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+var demoToastTimer = null;
+function demoToast(text) {
+  var old = document.querySelector('.sc-toast:not(.static-toast)');
+  if (old) old.remove();
+  clearTimeout(demoToastTimer);
+  var t = document.createElement('div');
+  t.className = 'sc-toast sc-raised-2';
+  t.setAttribute('role', 'status');
+  t.innerHTML = '<span class="sc-led sc-led--ok"></span>' + text;
+  document.body.appendChild(t);
+  demoToastTimer = setTimeout(function () { t.remove(); }, 2600);
+}
+document.getElementById('demo-toast').addEventListener('click', function () { demoToast('Applied to server'); });
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Tooltip">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Tooltip</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Tooltip.md">Guidelines</a></div>
+        <p class="summary">A tooltip shows help text on a small raised bubble when a ghost icon button is hovered or focused.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center;padding-top:96px;max-width:460px">
+<span class="sc-label">Usage</span>
+<span class="sc-tip"><button type="button" class="sc-btn sc-ibtn sc-btn--sm sc-btn--ghost" aria-label="Ledger estimates in UTC dates. Provider billing is not connected."><span data-sc-icon="info"></span></button><span class="sc-tip__bubble" role="tooltip">Ledger estimates in UTC dates. Provider billing is not connected.</span></span>
+<span class="sc-tip sc-tip--end"><button type="button" class="sc-btn sc-ibtn sc-btn--sm sc-btn--ghost" aria-label="Anchored to the right edge, for use near a panel border."><span data-sc-icon="info"></span></button><span class="sc-tip__bubble" role="tooltip">Anchored to the right edge, for use near a panel border.</span></span>
+</div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
@@ -323,6 +534,23 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 SoftConsole.init(document.currentScript.previousElementSibling);
 </script>
       </article>
+      <article class="sc-panel sc-raised-2 card" id="CodeBlock">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">CodeBlock</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/CodeBlock.md">Guidelines</a></div>
+        <p class="summary">A code block is a recessed mono block for JSON and logs. A quote marks an exact source quotation.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:14px;max-width:460px">
+<pre class="sc-code sc-inset-1">{
+  "equity": "500",
+  "buying_power": "500"
+}</pre>
+<blockquote class="sc-quote">Exact source quotation, kept in its original language.</blockquote>
+<p class="t-body" style="margin:0;color:var(--text-2)">Limits live in <code>config.json</code>.</p>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
       <article class="sc-panel sc-raised-2 card" id="DataTable">
         <div class="sc-panel__head"><h3 class="sc-panel__title">DataTable</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/DataTable.md">Guidelines</a></div>
         <p class="summary">Data tables list records on the flat surface with hairline rules, mono numbers aligned right and status as LED plus word.</p>
@@ -347,6 +575,7 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--gap)">
   <div class="sc-kpi sc-raised-2 sc-kpi--link"><div class="sc-kpi__top"><span class="sc-label">Requests / s</span><span class="sc-delta sc-delta--ok">▲ 3.2%</span></div><div class="sc-kpi__value"><span data-sc-count="12480">12,480</span></div><div class="sc-spark sc-inset-1" data-sc-spark="8,9,8.5,10,11,10.4,11.8,12,11.6,12.9,13.1,12.5"></div></div>
+  <div class="sc-kpi sc-raised-2"><div class="sc-kpi__top"><span class="sc-label">Disk used</span><span class="sc-delta sc-delta--warn">▲ 4 pt</span></div><div class="sc-kpi__value"><span data-sc-count="71">71</span><small>%</small></div><span class="sc-meter sc-inset-1"><i style="--p:71%"></i></span></div>
   <div class="sc-kpi sc-raised-2 sc-kpi--link"><div class="sc-kpi__top"><span class="sc-label">Error rate</span><span class="sc-delta sc-delta--warn">▲ 0.15 pt</span></div><div class="sc-kpi__value"><span data-sc-count="0.42" data-dec="2">0.42</span><small>%</small></div><div class="sc-spark sc-spark--warn sc-inset-1" data-sc-spark="0.22,0.25,0.24,0.27,0.26,0.3,0.29,0.33,0.36,0.35,0.4,0.42"></div></div>
 </div>
 </div>
@@ -369,6 +598,50 @@ function walk(seed, start) { var s = seed, v = start, out = []; for (var i = 0; 
 var series = [{ name: 'edge-01', data: walk(11, 52) }, { name: 'edge-02', data: walk(23, 61) }, { name: 'edge-12', data: walk(37, 64) }, { name: 'edge-15', data: walk(53, 38) }];
 SoftConsole.lines(document.getElementById('ca'), document.getElementById('la'), series, { mode: 'focus', focus: 2, label: 'CPU load, focus on edge-12' });
 SoftConsole.lines(document.getElementById('cb'), document.getElementById('lb'), series, { mode: 'peers', label: 'CPU load, four nodes' });
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="ListRow">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">ListRow</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/ListRow.md">Guidelines</a></div>
+        <p class="summary">List rows are flat, rule-separated rows that each open something: a service, a job, a record.</p>
+<div class="sc-root" style="padding:18px 20px">
+<ul class="sc-list" style="max-width:460px">
+  <li><button type="button" class="sc-list__row"><span class="sc-list__lead sc-raised-1"><span data-sc-icon="server"></span></span><span class="sc-list__body"><b>Maintenance agent</b><span>Server maintenance</span></span><span class="sc-chip sc-inset-1"><span class="sc-led sc-led--ok"></span>Running</span><svg class="sc-ic" aria-hidden="true"><use href="#sc-i-chevron-right"/></svg></button></li>
+  <li><button type="button" class="sc-list__row"><span class="sc-list__lead sc-raised-1"><span data-sc-icon="chart"></span></span><span class="sc-list__body"><b>Investing agent</b><span>Paper trading</span></span><span class="sc-chip sc-inset-1"><span class="sc-led sc-led--off"></span>Stopped</span><svg class="sc-ic" aria-hidden="true"><use href="#sc-i-chevron-right"/></svg></button></li>
+  <li><button type="button" class="sc-list__row sc-list__row--plain"><span class="sc-list__body"><b>Enrich</b><span>Job #147</span></span><span class="sc-chip sc-inset-1"><span class="sc-led sc-led--crit"></span>Failed</span><svg class="sc-ic" aria-hidden="true"><use href="#sc-i-chevron-right"/></svg></button></li>
+</ul>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="Readouts">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Readouts</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Readouts.md">Guidelines</a></div>
+        <p class="summary">Readouts show related values with the label engraved on the panel and the reading in a recessed window.</p>
+<div class="sc-root" style="padding:18px 20px">
+<dl class="sc-readouts" style="max-width:460px">
+  <div class="sc-readout"><dt class="sc-label">Broker</dt><dd class="sc-inset-1"><span class="sc-status"><span class="sc-led sc-led--ok"></span>read_connected</span></dd></div>
+  <div class="sc-readout"><dt class="sc-label">Cash</dt><dd class="sc-inset-1">$500.00</dd></div>
+  <div class="sc-readout"><dt class="sc-label">Monthly loss</dt><dd class="sc-inset-1">$0.00</dd></div>
+  <div class="sc-readout"><dt class="sc-label">Time-weighted return</dt><dd class="sc-inset-1">1.24 <small>%</small></dd></div>
+  <div class="sc-readout sc-readout--text"><dt class="sc-label">Account</dt><dd class="sc-inset-1">Dedicated cash account</dd></div>
+</dl>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="SegmentBars">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">SegmentBars</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/SegmentBars.md">Guidelines</a></div>
+        <p class="summary">Segment bars draw a read-only bar graph as a level meter on a segment display's glass, with a seven-segment readout of the total or the column under the cursor.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:14px">
+<div class="sc-display sc-display--live sc-raised-2"><div class="sc-display__glass" id="segbars-week"></div></div>
+<div class="sc-display sc-display--live sc-raised-2"><div class="sc-display__glass" data-sc-segbars="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.2,0,0,4.1,0,131,22.1,203,159.6,23.4,58.6,39.9,115.5,0" data-labels="Sep 16,Sep 17,Sep 18,Sep 19,Sep 20,Sep 21,Sep 22,Sep 23,Sep 24,Sep 25,Sep 26,Sep 27,Sep 28,Sep 29,Sep 30,Oct 1,Oct 2,Oct 3,Oct 4,Oct 5,Oct 6,Oct 7,Oct 8,Oct 9,Oct 10,Oct 11,Oct 12,Oct 13,Oct 14,Oct 15" data-unit="k tok" data-label="Daily tokens, last 30 days" data-total-label="Total · 30 days" data-max-labels="6"></div></div>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+SoftConsole.segbars(document.getElementById('segbars-week'), [203000, 159622, 23353, 58643, 39854, 115466, 64210], { labels: ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'], format: function (v) { return { text: (v / 1000).toFixed(v >= 1e5 ? 0 : 1), unit: 'k tokens' }; }, label: 'Daily tokens', totalLabel: 'Tokens · 7 days' });
 </script>
       </article>
     </div>
