@@ -27,7 +27,7 @@ Options:
 - `levels` (10): segments per column.
 - `digits` (5): readout digit cells.
 - `max`: the value of a full column. Defaults to the largest value rounded up to 1, 2, 2.5 or 5 × 10ⁿ (`SoftConsole.niceMax`).
-- `maxLabels` (8): about how many x labels to show.
+- `maxLabels` (8): about how many x labels to show. Lower it in narrow panels so date labels don't touch.
 - `stateLabel` ("Live"): the top-right word while the readout shows the total.
 
 How it reads:
