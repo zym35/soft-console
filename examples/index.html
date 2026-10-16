@@ -41,7 +41,7 @@
 <body class="sc-root">
 <header class="top">
   <div class="bar">
-    <div class="brand">Soft Console<span>v2.0.0 · components</span></div>
+    <div class="brand">Soft Console<span>v2.1.0 · components</span></div>
     <div class="prefs">
       <div><span class="sc-label">Palette</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="palette" role="group" aria-label="Palette">
@@ -638,6 +638,91 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
 SoftConsole.segbars(document.getElementById('segbars-week'), [203000, 159622, 23353, 58643, 39854, 115466, 64210], { labels: ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'], format: function (v) { return { text: (v / 1000).toFixed(v >= 1e5 ? 0 : 1), unit: 'k tokens' }; }, label: 'Daily tokens', totalLabel: 'Tokens · 7 days' });
+</script>
+      </article>
+    </div>
+  </section>
+  <section class="group" aria-labelledby="g-Media">
+    <h2 id="g-Media" class="t-title">Media</h2>
+    <div class="cards">
+      <article class="sc-panel sc-raised-2 card" id="Lightbox">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">Lightbox</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/Lightbox.md">Guidelines</a></div>
+        <p class="summary">A lightbox enlarges one image or video on a floating panel over the scrim, as large as the screen allows.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:10px;max-width:460px">
+<button type="button" class="sc-frame" data-sc-dialog="#demo-plan" aria-label="Open Hall B floor plan"><img src="media/floor.svg" alt="Floor plan of hall B with racks C10 and C11 marked"></button>
+<span class="sc-note">Open the plan to see it whole.</span>
+<div class="sc-scrim" id="demo-plan" hidden>
+  <section class="sc-lightbox sc-raised-3" role="dialog" aria-modal="true" aria-labelledby="demo-plan-title">
+    <div class="sc-lightbox__head"><h4 class="sc-lightbox__title" id="demo-plan-title">Hall B floor plan <span>1600 × 900</span></h4><button type="button" class="sc-btn sc-btn--ghost" aria-label="Close" data-sc-close><span data-sc-icon="close"></span></button></div>
+    <div class="sc-frame"><img src="media/floor.svg" alt="Floor plan of hall B with racks C10 and C11 marked"></div>
+  </section>
+</div>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="MediaFrame">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">MediaFrame</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/MediaFrame.md">Guidelines</a></div>
+        <p class="summary">A media frame sets a picture or video into the panel in a recessed window, so it reads as content the panel holds.</p>
+<div class="sc-root" style="padding:18px 20px">
+<figure style="margin:0;display:grid;gap:10px;max-width:460px">
+<div class="sc-frame"><img src="media/cam04.jpg" alt="Camera 4: the aisle of row C in hall B"></div>
+<figcaption class="sc-note">CAM 04 · hall B, row C</figcaption>
+</figure>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+</script>
+      </article>
+      <article class="sc-panel sc-raised-2 card" id="MediaPlayer">
+        <div class="sc-panel__head"><h3 class="sc-panel__title">MediaPlayer</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/MediaPlayer.md">Guidelines</a></div>
+        <p class="summary">A media player is one compact row: play, a seek bar with a thin handle, the time, and mute. Audio seeks on a waveform.</p>
+<div class="sc-root" style="padding:18px 20px">
+<div style="display:grid;gap:18px;max-width:460px">
+<div style="display:grid;gap:10px">
+<span class="sc-form-row__label">Handover, night shift</span>
+<audio id="demo-handover" src="media/handover.m4a" preload="metadata"></audio>
+<div class="sc-player" data-sc-player="#demo-handover">
+  <button type="button" class="sc-btn" data-sc-play aria-label="Play"></button>
+  <div class="sc-wave" data-sc-wave=".00,.82,.82,.95,.80,1.00,.97,.88,.86,.68,.69,.51,.33,.34,.23,.22,.20,.23,.26,.39,.32,.00,.74,.74,.89,.84,.98,.99,.87,.92,.77,.78,.59,.35,.42,.28,.25,.20,.21,.22,.32,.28,.00,.66,.65,.83,.86,.95,1.00,.82,.96,.85,.85,.68,.43,.50,.34,.28,.23,.20,.20,.26,.25,.00,.57,.55,.75,.84,.90,.99,.77,.99,.91,.90,.77,.54,.59,.41,.33,.27,.20,.20,.22,.22,.00,.48,.46,.66,.81,.83,.96,.69,1.00,.96,.92,.84,.65,.68,.49,.36,.33,.23,.22,.20,.20,.00,.40,.37,.57,.74,.76,.91,.76,.99,.99,.93,.91,.74,.76,.58"><input type="range" aria-label="Seek"></div>
+  <span class="sc-time"></span>
+  <button type="button" class="sc-btn sc-btn--ghost" data-sc-mute aria-label="Mute"></button>
+</div>
+</div>
+<div style="display:grid;gap:10px">
+<div class="sc-frame"><video id="demo-cam" src="media/cam04.mp4" poster="media/cam04.jpg" preload="metadata" playsinline></video></div>
+<div class="sc-player" data-sc-player="#demo-cam">
+  <button type="button" class="sc-btn" data-sc-play aria-label="Play"></button>
+  <input class="sc-seek" type="range" aria-label="Seek">
+  <span class="sc-time"></span>
+  <button type="button" class="sc-btn sc-btn--ghost" data-sc-mute aria-label="Mute"></button>
+  <button type="button" class="sc-btn sc-btn--ghost" aria-label="Enlarge" data-sc-dialog="#demo-cam-box"><span data-sc-icon="expand"></span></button>
+</div>
+</div>
+<div class="sc-scrim" id="demo-cam-box" hidden>
+  <section class="sc-lightbox sc-lightbox--player sc-raised-3" role="dialog" aria-modal="true" aria-labelledby="demo-cam-title">
+    <div class="sc-lightbox__head"><h4 class="sc-lightbox__title" id="demo-cam-title">CAM 04 · hall B, row C <span>16 Oct, 14:00</span></h4><button type="button" class="sc-btn sc-btn--ghost" aria-label="Close" data-sc-close><span data-sc-icon="close"></span></button></div>
+    <div class="sc-frame"><video id="demo-cam-big" src="media/cam04.mp4" poster="media/cam04.jpg" preload="metadata" playsinline></video></div>
+    <div class="sc-player" data-sc-player="#demo-cam-big">
+      <button type="button" class="sc-btn" data-sc-play aria-label="Play"></button>
+      <input class="sc-seek" type="range" aria-label="Seek">
+      <span class="sc-time"></span>
+      <button type="button" class="sc-btn sc-btn--ghost" data-sc-mute aria-label="Mute"></button>
+    </div>
+  </section>
+</div>
+</div>
+</div>
+<script>
+SoftConsole.init(document.currentScript.previousElementSibling);
+document.querySelector('[data-sc-dialog="#demo-cam-box"]').addEventListener('click', function () {
+  var inline = document.getElementById('demo-cam'), big = document.getElementById('demo-cam-big');
+  big.currentTime = inline.currentTime;
+  inline.pause();
+});
 </script>
       </article>
     </div>

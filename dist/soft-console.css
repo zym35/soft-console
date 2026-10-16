@@ -412,6 +412,53 @@
 .sc-quote { margin: 0; padding: 4px 0 4px 14px; border-left: 2px solid var(--fill-muted); color: var(--text-1); white-space: pre-wrap; }
 :where(.sc-root) code { font: 500 12.5px var(--font-data); color: var(--text-2); }
 
+/* ---------- media frame: a picture or video set into the panel in a recessed window ----------
+   --ar sets the aspect ratio (16 / 9 by default). The picture covers the window; a lightbox shows it whole. */
+.sc-frame { position: relative; display: block; margin: 0; overflow: hidden; aspect-ratio: var(--ar, 16 / 9); border-radius: var(--radius-lg); background: var(--well); }
+.sc-frame > img, .sc-frame > video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.sc-frame::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; border: 1px solid; border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); box-shadow: var(--inset-1); }
+button.sc-frame { width: 100%; padding: 0; border: 0; cursor: zoom-in; }
+button.sc-frame:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 3px; }
+
+/* ---------- media player: one compact row. Play, seek (a bar, or a waveform for audio) with a thin handle,
+   time, then any extra keys. SoftConsole.player() wires it to an <audio> or <video>. ---------- */
+.sc-player { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.sc-player > .sc-btn { width: 36px; height: 36px; padding: 0; flex: none; border-radius: 50%; }
+.sc-player > .sc-btn--ghost { width: 32px; height: 32px; }
+.sc-player > .sc-btn::after { left: calc(50% - 5px); right: calc(50% - 5px); bottom: 3px; }
+.sc-player > [data-sc-play]:not([aria-pressed="true"]) .sc-ic { translate: 1px 0; } /* optical center of the play triangle */
+.sc-time { font: 500 13px/1 var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-1); white-space: nowrap; }
+.sc-time span { color: var(--text-3); }
+.sc-seek { -webkit-appearance: none; appearance: none; flex: 1; min-width: 80px; height: 24px; margin: 0; background: transparent; cursor: pointer; --pct: 0%; }
+.sc-seek::-webkit-slider-runnable-track { height: 6px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent-2), var(--accent)) 0 0 / var(--pct) 100% no-repeat, var(--well); box-shadow: inset 1px 1px 2px var(--shade-lo), inset -1px -1px 1px var(--shade-hi); }
+.sc-seek::-webkit-slider-thumb { -webkit-appearance: none; width: 3px; height: 18px; margin-top: -6px; border: 0; border-radius: 2px; background: var(--text-1); }
+.sc-seek::-moz-range-track { height: 6px; border-radius: var(--radius-pill); background: var(--well); box-shadow: inset 1px 1px 2px var(--shade-lo), inset -1px -1px 1px var(--shade-hi); }
+.sc-seek::-moz-range-progress { height: 6px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+.sc-seek::-moz-range-thumb { width: 3px; height: 18px; border: 0; border-radius: 2px; background: var(--text-1); }
+.sc-seek:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 3px; border-radius: 4px; }
+/* waveform: fixed 3px bars with 2px gaps on whole pixels, as many as the width holds (drawn by SoftConsole.wave).
+   Played bars are accent; a transparent range on top does the seeking. */
+.sc-wave { position: relative; flex: 1; min-width: 80px; height: 28px; border-radius: var(--radius-xs); }
+.sc-wave:focus-within { outline: 2px solid var(--accent-mark); outline-offset: 4px; }
+.sc-wave__bars { display: flex; align-items: center; gap: 2px; height: 100%; overflow: hidden; }
+.sc-wave__bars i { flex: none; width: 3px; border-radius: 1.5px; background: var(--fill-muted); }
+.sc-wave__bars i.on { background: var(--accent); }
+.sc-wave__head { position: absolute; top: -3px; bottom: -3px; left: 0; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--text-1); pointer-events: none; }
+.sc-wave > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+
+/* ---------- lightbox: an image or video enlarged on a floating panel over the scrim; SoftConsole.dialog() opens it.
+   The panel takes all the screen it can: the full width, or the height left after its own chrome (--lb-chrome),
+   whichever is smaller at the media's aspect ratio (--ar-n, a number, set on the panel). ---------- */
+.sc-lightbox, .sc-lightbox.sc-raised-3 { box-shadow: var(--float); }
+.sc-lightbox { display: grid; gap: var(--space-3); width: min(100%, calc((100vh - var(--lb-chrome)) * var(--ar-n, 1.7778) + 24px)); padding: 10px 12px 12px; border-radius: var(--radius-xl); --lb-chrome: 100px; animation: sc-rise var(--dur-ui) var(--ease-standard); }
+.sc-lightbox:focus-visible { outline: none; }
+.sc-lightbox--player { --lb-chrome: 150px; }
+.sc-lightbox__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding-left: 4px; }
+.sc-lightbox__title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; font: 600 14px/1.3 var(--font-ui); white-space: nowrap; }
+.sc-lightbox__title span { overflow: hidden; text-overflow: ellipsis; font: 500 12px/1 var(--font-data); color: var(--text-3); }
+.sc-lightbox__head > .sc-btn { width: 32px; height: 32px; padding: 0; flex: none; border-radius: 50%; }
+.sc-lightbox .sc-frame > img, .sc-lightbox .sc-frame > video { object-fit: contain; }
+
 /* ---------- motion ---------- */
 @keyframes sc-enter { from { opacity: .3; transform: translateY(10px); } }
 @keyframes sc-sweep { from { stroke-dashoffset: 1; } }

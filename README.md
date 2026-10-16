@@ -22,7 +22,7 @@ Set a palette with `data-theme` on `<html>`: `graphite-teal` (default) or `carbo
 ## Docs
 
 - [Guidelines](docs/guidelines.md): principles, color, type, motion and copy
-- [Components](docs/components): markup and usage for all 35 components
+- [Components](docs/components): markup and usage for all 38 components
 
 ## License
 

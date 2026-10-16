@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"LineChart"},{"name":"DataTable"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"ListRow"},{"name":"FormRow"},{"name":"ToggleGroup"},{"name":"TextArea"},{"name":"FileField"},{"name":"SaveBar"},{"name":"Callout"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Toast"},{"name":"Disclosure"},{"name":"Readouts"},{"name":"CodeBlock"},{"name":"SegmentBars"}]} */
+/* @ds-bundle: {"format":4,"namespace":"SoftConsole","components":[{"name":"Surface"},{"name":"Panel"},{"name":"Button"},{"name":"IconButton"},{"name":"SegmentedControl"},{"name":"Switch"},{"name":"Check"},{"name":"Slider"},{"name":"Field"},{"name":"JogWheel"},{"name":"StatusChip"},{"name":"AlertList"},{"name":"SegmentDisplay"},{"name":"DialGauge"},{"name":"Meter"},{"name":"KpiTile"},{"name":"LineChart"},{"name":"DataTable"},{"name":"SideNav"},{"name":"Breadcrumb"},{"name":"Avatar"},{"name":"ListRow"},{"name":"FormRow"},{"name":"ToggleGroup"},{"name":"TextArea"},{"name":"FileField"},{"name":"SaveBar"},{"name":"Callout"},{"name":"Tooltip"},{"name":"Dialog"},{"name":"Toast"},{"name":"Disclosure"},{"name":"Readouts"},{"name":"CodeBlock"},{"name":"SegmentBars"},{"name":"MediaFrame"},{"name":"MediaPlayer"},{"name":"Lightbox"}]} */
 /* Soft Console helpers. Plain script, no dependencies. Exposes window.SoftConsole.
    Markup and styling live in bundle.css; this file draws the instruments and wires interactions. */
 (function () {
@@ -448,13 +448,105 @@
     return native.scSelect;
   }
 
+  /* ---------- media: waveform and player ----------
+     wave(el, peaks, progress): draws an audio clip in a .sc-wave as fixed 3px bars with 2px gaps on whole
+     pixels, as many as the width holds, each the loudest of the peaks (0 to 1) it covers. It redraws when the
+     element resizes. Returns { set(progress), peaks(list) }. */
+  var WAVE_STEP = 5; // bar plus gap, in px
+  function wave(el, peaks, progress) {
+    if (el.scWave) { el.scWave.peaks(peaks); el.scWave.set(progress); return el.scWave; }
+    var bars = el.querySelector('.sc-wave__bars'), head = el.querySelector('.sc-wave__head');
+    if (!bars) { bars = document.createElement('div'); bars.className = 'sc-wave__bars'; el.insertBefore(bars, el.firstChild); }
+    if (!head) { head = document.createElement('span'); head.className = 'sc-wave__head'; bars.insertAdjacentElement('afterend', head); }
+    bars.setAttribute('aria-hidden', 'true');
+    var data = peaks || [], p = 0, n = 0;
+    function set(v) {
+      p = Math.min(1, Math.max(0, +v || 0));
+      Array.prototype.forEach.call(bars.children, function (b, i) { b.classList.toggle('on', (i + 0.5) / n < p); });
+      head.style.left = (p * Math.max(0, n * WAVE_STEP - 2)).toFixed(1) + 'px';
+    }
+    function draw(force) {
+      var next = Math.max(1, Math.floor((el.clientWidth + 2) / WAVE_STEP));
+      if (next === n && !force) return;
+      n = next;
+      var html = '';
+      for (var i = 0; i < n; i++) {
+        var a = Math.floor(i * data.length / n), b = Math.max(a + 1, Math.floor((i + 1) * data.length / n)), v = 0;
+        for (var k = a; k < b && k < data.length; k++) v = Math.max(v, +data[k] || 0);
+        html += '<i style="height:' + Math.round(18 + 82 * Math.min(1, v)) + '%"></i>';
+      }
+      bars.innerHTML = html;
+      set(p);
+    }
+    if (window.ResizeObserver) new ResizeObserver(function () { draw(false); }).observe(el);
+    p = progress || 0;
+    draw(true);
+    el.scWave = { set: set, peaks: function (d) { data = d || []; draw(true); } };
+    return el.scWave;
+  }
+
+  /* player(row, media): wires a .sc-player to an <audio> or <video>. The row holds a [data-sc-play] button,
+     a seek (input.sc-seek, or a .sc-wave holding a range input and data-sc-wave peaks), a .sc-time and,
+     optionally, a [data-sc-mute] button. Play and mute latch pressed while on. */
+  var clock = function (s) {
+    if (!isFinite(s)) return '—';
+    var v = Math.max(0, Math.floor(s)), m = Math.floor(v / 60), x = v % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x;
+  };
+  function player(row, media) {
+    if (!row || !media || !('paused' in media)) throw new Error('SoftConsole.player needs a .sc-player and an <audio> or <video> element');
+    if (row.scPlayer) return row.scPlayer;
+    var play = row.querySelector('[data-sc-play]'), mute = row.querySelector('[data-sc-mute]'), time = row.querySelector('.sc-time');
+    var waveEl = row.querySelector('.sc-wave');
+    var seek = waveEl ? waveEl.querySelector('input[type="range"]') : row.querySelector('input.sc-seek');
+    var w = waveEl ? wave(waveEl, list(waveEl.getAttribute('data-sc-wave')).map(Number), 0) : null;
+    var dragging = false, frame = 0;
+    function state() {
+      if (play) { play.setAttribute('aria-pressed', String(!media.paused)); play.innerHTML = icon(media.paused ? 'play' : 'pause'); }
+      if (mute) { mute.setAttribute('aria-pressed', String(media.muted)); mute.innerHTML = icon(media.muted ? 'muted' : 'volume'); }
+    }
+    function progress() {
+      var d = media.duration, t = media.currentTime, ok = isFinite(d) && d > 0, p = ok ? t / d : 0;
+      if (seek) {
+        seek.max = ok ? d : 0;
+        if (!dragging) seek.value = t;
+        seek.setAttribute('aria-valuetext', clock(t) + ' of ' + clock(d));
+        seek.style.setProperty('--pct', (p * 100) + '%');
+      }
+      if (w) w.set(p);
+      if (time) time.innerHTML = esc(clock(t)) + ' <span>/ ' + esc(clock(d)) + '</span>';
+    }
+    function tick() { progress(); frame = media.paused ? 0 : requestAnimationFrame(tick); }
+    if (play) play.addEventListener('click', function () {
+      if (!media.paused) { media.pause(); return; }
+      var started = media.play();
+      // a failed start (no source, blocked autoplay) leaves the media paused; show that, and log why
+      if (started && started.catch) started.catch(function (err) { state(); if (window.console) console.warn('SoftConsole.player: playback did not start', err); });
+    });
+    if (mute) mute.addEventListener('click', function () { media.muted = !media.muted; });
+    if (seek) {
+      seek.min = 0;
+      seek.step = 'any';
+      seek.addEventListener('pointerdown', function () { dragging = true; });
+      ['pointerup', 'pointercancel', 'change'].forEach(function (ev) { seek.addEventListener(ev, function () { dragging = false; }); });
+      seek.addEventListener('input', function () { media.currentTime = +seek.value; progress(); });
+    }
+    media.addEventListener('play', function () { state(); if (!frame) tick(); });
+    ['pause', 'ended', 'volumechange'].forEach(function (ev) { media.addEventListener(ev, state); });
+    ['timeupdate', 'durationchange', 'loadedmetadata', 'seeked', 'emptied'].forEach(function (ev) { media.addEventListener(ev, progress); });
+    state();
+    progress();
+    row.scPlayer = { media: media, play: function () { return media.play(); }, pause: function () { media.pause(); } };
+    return row.scPlayer;
+  }
+
   /* ---------- dialog: modal over a scrim. Traps focus, closes on Escape, a scrim click or
      [data-sc-close], and returns focus to the opener. ---------- */
   var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   function dialog(scrim) {
     if (!scrim || !scrim.classList.contains('sc-scrim')) throw new Error('SoftConsole.dialog needs a .sc-scrim element');
     if (scrim.scDialog) return scrim.scDialog;
-    var box = scrim.querySelector('.sc-dialog') || scrim, opener = null;
+    var box = scrim.querySelector('.sc-dialog, .sc-lightbox') || scrim, opener = null;
     if (!box.hasAttribute('role')) box.setAttribute('role', 'dialog');
     box.setAttribute('aria-modal', 'true');
     if (!box.hasAttribute('tabindex')) box.tabIndex = -1;
@@ -477,6 +569,7 @@
     }
     function close() {
       if (scrim.hidden) return;
+      $$('audio, video', box).forEach(function (m) { m.pause(); }); // a closed lightbox never keeps playing
       scrim.hidden = true;
       document.removeEventListener('keydown', onKey);
       if (opener && opener.focus) opener.focus();
@@ -508,6 +601,11 @@
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
     moon: '<path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7Z"/>',
     monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4"/>',
+    play: '<path d="M8 5.5v13l10.5-6.5z"/>',
+    pause: '<path d="M9 5.5v13M15 5.5v13"/>',
+    volume: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+    muted: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
   };
   function mountIcons() {
     if (document.getElementById('sc-icons')) return;
@@ -558,6 +656,18 @@
       if (!el.dataset.scBound) { el.dataset.scBound = '1'; el.addEventListener('input', sync); }
       sync();
     });
+    $$('input.sc-seek', r).forEach(function (el) {
+      if (el.closest('[data-sc-player]')) return; // a wired player keeps its own seek in sync
+      el.style.setProperty('--pct', ((el.value - (el.min || 0)) / ((el.max || 100) - (el.min || 0)) * 100) + '%');
+    });
+    $$('.sc-wave[data-sc-wave]', r).forEach(function (el) {
+      if (!el.closest('[data-sc-player]')) wave(el, list(el.getAttribute('data-sc-wave')).map(Number), num(el.dataset.progress, 0));
+    });
+    $$('[data-sc-player]', r).forEach(function (row) {
+      var media = document.querySelector(row.getAttribute('data-sc-player'));
+      if (!media) throw new Error('SoftConsole.init: no media element matches data-sc-player="' + row.getAttribute('data-sc-player') + '"');
+      player(row, media);
+    });
     $$('.sc-field select', r).forEach(select);
     $$('[data-sc-dialog]', r).forEach(function (b) {
       if (b.dataset.scBound) return;
@@ -588,7 +698,7 @@
   }
 
   window.SoftConsole = {
-    version: '2.0.0',
+    version: '2.1.0',
     themes: THEMES.slice(),
     modes: MODES.slice(),
     init: init,
@@ -604,6 +714,8 @@
     jog: jog,
     select: select,
     dialog: dialog,
+    wave: wave,
+    player: player,
     countUp: countUp,
     icon: icon,
     mountIcons: mountIcons,
