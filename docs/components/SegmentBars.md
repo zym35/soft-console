@@ -32,7 +32,7 @@ Options:
 
 How it reads:
 - Past columns are lit at reduced intensity; the latest is lit at full intensity, with a `vfd-glow` on live glass, in both modes.
-- The pointer, or the arrow keys, Home, End and Escape when the graph has focus, move a cursor. The cursor column takes the full intensity, and the readout shows its name, value and "Latest" or "Day".
+- The pointer, or the arrow keys, Home, End and Escape when the graph has focus, move a cursor. Press and drag scrubs, with a mouse or a finger: the cursor follows the column nearest the pointer's x, even when the pointer leaves the columns. A finger that lifts returns the readout to the total, and the columns let the page scroll vertically (`touch-action: pan-y`). The cursor column takes the full intensity, and the readout shows its name, value and "Latest" or "Day".
 - Columns cap at 40px and spread evenly, so wide panels keep the meter look.
 - Columns are not buttons. The graph is one focusable `role="img"` whose label lists every value.
 - Segments light bottom-up in steps on first draw, and appear in place under reduced motion.

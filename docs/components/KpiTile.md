@@ -10,7 +10,9 @@ A KPI tile shows one headline number with its label, its change and a sparkline 
   <div class="sc-spark sc-inset-1" data-sc-spark="210,204,199,206,195,190,192,188,186,190,184,182"></div>
 </div>
 ```
-Add `.sc-kpi--link` when the tile opens a detail view: it lifts on hover. Delta color follows meaning, not direction (lower latency is `ok`). Use `.sc-spark--warn` when the trend is the problem.
+The number counts up from 0 on load. To refresh it, call `SoftConsole.countUp(el, 12480)` (the decimals are a third argument) and it counts from the number on screen, keeping its velocity if it was already moving. Under reduced motion it jumps.
+
+Add `.sc-kpi--link` when the tile opens a detail view: it lifts on hover, on the spring easing, so moving off it halfway sets it back down without a jump. Pressed, it settles quickly (`dur-press-in`) below its resting height, to `raised-1`. Delta color follows meaning, not direction (lower latency is `ok`). Use `.sc-spark--warn` when the trend is the problem.
 For a bounded value (CPU, memory, disk), put a `.sc-meter` in place of the sparkline. Tiles in a row stretch to the same height and keep their content at the top, so labels and values line up across the row.
 
 ## Do and don't

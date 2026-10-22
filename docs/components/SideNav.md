@@ -12,7 +12,7 @@ A side nav is a labeled navigation rail; the current page presses in like a sele
   <a class="sc-nav-item" href="#settings"><svg class="sc-ic"><use href="#sc-i-gear"/></svg><span>Settings</span></a>
 </nav>
 ```
-Mark the current item with `aria-current="page"`. It takes `btn-press`, `accent-text` and the accent underline. Nested items go in `.sc-nav-group`, indented on a `rule` guide line at a smaller height.
+Mark the current item with `aria-current="page"`. It takes `btn-press`, `accent-text` and the accent underline. An item presses in on pointer down, before the page changes. Nested items go in `.sc-nav-group`, indented on a `rule` guide line at a smaller height.
 
 ## Do and don't
 - Do keep to one level of nesting.

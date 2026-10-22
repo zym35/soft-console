@@ -7,7 +7,7 @@ A slider sets a value in a range; the track is recessed, the filled part is acce
 <label for="rate">Sample rate</label> <output for="rate" class="sc-range-out"></output>
 <input id="rate" class="sc-range" type="range" min="50" max="1000" step="50" value="250" data-format="{v} ms">
 ```
-`SoftConsole.init` keeps the fill (`--pct`) and the `<output>` in sync. `data-format` sets the output text.
+`SoftConsole.init` keeps the fill (`--pct`) and the `<output>` in sync. `data-format` sets the output text. Pressing the knob presses it in: an inset shadow and a slight shrink, fast in and slower out. Under reduced motion it keeps the shadow and not the shrink.
 
 ## Do and don't
 - Do always show the current value with its unit next to the label.

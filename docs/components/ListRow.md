@@ -13,7 +13,7 @@ List rows are flat, rule-separated rows that each open something: a service, a j
   </button></li>
 </ul>
 ```
-Each whole row is one button. On hover it darkens to `surface-down`, like a table row. Without a lead tile, add `.sc-list__row--plain`. When the list is empty, show a `.sc-list__empty` line instead.
+Each whole row is one button. On hover it darkens to `surface-down`, like a table row, and presses in to `well` on pointer down. Without a lead tile, add `.sc-list__row--plain`. When the list is empty, show a `.sc-list__empty` line instead.
 
 ## Do and don't
 - Do use it when every row opens a detail view. Use a DataTable to compare columns, and an AlertList for open alerts.

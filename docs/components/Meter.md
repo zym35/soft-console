@@ -11,6 +11,11 @@ Meters are thin recessed tracks with a colored fill, used in lists of rails, res
 ```
 `--p` is the fill width, `--c` its color: `accent` by default, a signal color only past a threshold. `.sc-meter--mini` fits inside table cells.
 
+The fill grows in once on load. After that, set `--p` and the bar moves from where it is, on the spring easing, without a jump, and it can be re-targeted mid-move. The width moves rather than a scale, so the pill ends stay round. Under reduced motion it changes in place.
+```js
+bar.style.setProperty('--p', '34%');
+```
+
 In light mode `warn` and `crit` fills take the deep signal tones (warn leans orange) and fills do not glow.
 
 ## Do and don't

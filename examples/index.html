@@ -8,28 +8,28 @@
 <link rel="stylesheet" href="../dist/soft-console.css">
 <script src="../dist/soft-console.js"></script>
 <style>
-  .page { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 80px; display: grid; gap: var(--space-8); }
+  .page { max-width: 77.5rem; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem) 5rem; display: grid; gap: var(--space-8); }
   .top { position: sticky; top: 0; z-index: 5; background: var(--surface); box-shadow: 0 14px 28px -18px var(--shade-lo); }
-  .top .bar { max-width: 1240px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
-  .brand { margin-right: auto; font: 700 17px/1.2 var(--font-ui); }
-  .brand span { display: block; font: 500 11px/1.4 var(--font-data); color: var(--text-3); }
-  .prefs { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-  .prefs > div { display: flex; gap: 8px; align-items: center; }
-  .mode > button { display: inline-grid; place-items: center; padding: 0 12px; }
-  .mode .sc-ic { width: 18px; height: 18px; }
-  .intro { display: grid; gap: 12px; padding-top: 40px; max-width: 70ch; }
+  .top .bar { max-width: 77.5rem; margin: 0 auto; padding: .875rem clamp(1rem, 4vw, 2.5rem); display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; }
+  .brand { margin-right: auto; font: 700 1.0625rem/1.2 var(--font-ui); }
+  .brand span { display: block; font: 500 .6875rem/1.4 var(--font-data); color: var(--text-3); }
+  .prefs { display: flex; flex-wrap: wrap; gap: .625rem 1.125rem; align-items: center; }
+  .prefs > div { display: flex; gap: .5rem; align-items: center; }
+  .mode > button { display: inline-grid; place-items: center; padding: 0 .75rem; }
+  .mode .sc-ic { width: 1.125rem; height: 1.125rem; }
+  .intro { display: grid; gap: .75rem; padding-top: 2.5rem; max-width: 70ch; }
   .intro p { margin: 0; color: var(--text-2); }
   .intro h1 { margin: 0; }
   .group { display: grid; gap: var(--space-5); }
   .group h2 { margin: 0; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: var(--gap); align-items: start; }
-  .card .summary { margin: 0; color: var(--text-2); font-size: 14px; }
-  .card .sc-root { padding: 6px 0 0 !important; }
-  .doc { font: 600 12px var(--font-ui); color: var(--accent-text); text-decoration: none; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 28.75rem), 1fr)); gap: var(--gap); align-items: start; }
+  .card .summary { margin: 0; color: var(--text-2); font-size: .875rem; }
+  .card .sc-root { padding: .375rem 0 0 !important; }
+  .doc { font: 600 .75rem var(--font-ui); color: var(--accent-text); text-decoration: none; }
   .doc:hover { text-decoration: underline; }
   a { color: var(--accent-text); }
   .cta { text-decoration: none; }
-  .cta .sc-ic { width: 16px; height: 16px; }
+  .cta .sc-ic { width: 1rem; height: 1rem; }
   .static-dialog { position: relative; inset: auto; padding: var(--space-5); border-radius: var(--radius-lg); }
   .static-toast { position: static; translate: none; justify-self: start; }
   @media (max-width: 760px) {
@@ -41,7 +41,7 @@
 <body class="sc-root">
 <header class="top">
   <div class="bar">
-    <div class="brand">Soft Console<span>v2.1.0 · components</span></div>
+    <div class="brand">Soft Console<span>v2.2.0 · components</span></div>
     <div class="prefs">
       <div><span class="sc-label">Palette</span>
         <div class="sc-segmented sc-raised-1" data-sc-single id="palette" role="group" aria-label="Palette">
@@ -56,6 +56,7 @@
           <button type="button" value="dark" aria-pressed="true" aria-label="Dark" title="Dark"><span data-sc-icon="moon"></span></button><button type="button" value="light" aria-pressed="false" aria-label="Light" title="Light"><span data-sc-icon="sun"></span></button><button type="button" value="auto" aria-pressed="false" aria-label="Match system" title="Match system"><span data-sc-icon="monitor"></span></button>
         </div></div>
     </div>
+    <a class="sc-btn sc-btn--ghost sc-btn--sm cta" href="motion.html"><span>Motion lab</span></a>
     <a class="sc-btn sc-btn--primary sc-btn--sm cta" href="https://github.com/zym35/soft-console" target="_blank" rel="noopener"><span>View on GitHub</span><svg class="sc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
   </div>
 </header>
@@ -442,24 +443,17 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <div class="sc-root" style="padding:18px 20px">
 <div style="display:grid;gap:14px">
 <div class="sc-toast sc-raised-2 static-toast"><span class="sc-led sc-led--ok"></span>Applied to server</div>
-<button type="button" class="sc-btn" id="demo-toast" style="justify-self:start"><span>Show toast</span></button>
+<div style="display:flex;gap:14px;flex-wrap:wrap"><button type="button" class="sc-btn" id="demo-toast"><span>Show toast</span></button><button type="button" class="sc-btn" id="demo-archive"><span>Archive node</span></button></div>
 </div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
-var demoToastTimer = null;
-function demoToast(text) {
-  var old = document.querySelector('.sc-toast:not(.static-toast)');
-  if (old) old.remove();
-  clearTimeout(demoToastTimer);
-  var t = document.createElement('div');
-  t.className = 'sc-toast sc-raised-2';
-  t.setAttribute('role', 'status');
-  t.innerHTML = '<span class="sc-led sc-led--ok"></span>' + text;
-  document.body.appendChild(t);
-  demoToastTimer = setTimeout(function () { t.remove(); }, 2600);
-}
+/* one toast at a time: a new one replaces the one showing. Undo instead of a confirm dialog, because archiving can be reversed */
+function demoToast(text, opts) { return SoftConsole.toast(text, opts); }
 document.getElementById('demo-toast').addEventListener('click', function () { demoToast('Applied to server'); });
+document.getElementById('demo-archive').addEventListener('click', function () {
+  demoToast('Node archived', { action: { label: 'Undo', onAction: function () { demoToast('Edge-12 restored'); } } });
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="Tooltip">
@@ -486,10 +480,18 @@ SoftConsole.init(document.currentScript.previousElementSibling);
         <div class="sc-panel__head"><h3 class="sc-panel__title">DialGauge</h3><a class="doc" href="https://github.com/zym35/soft-console/blob/main/docs/components/DialGauge.md">Guidelines</a></div>
         <p class="summary">A dial gauge shows one live value against its range with a tick ring, a glowing accent arc and the number on a raised hub.</p>
 <div class="sc-root" style="padding:18px 20px">
-<div style="max-width:260px"><div data-sc-gauge="72" data-label="Cluster load"></div></div>
+<div style="display:grid;gap:14px;max-width:260px">
+<div data-sc-gauge="72" data-label="Cluster load" id="demo-gauge"></div>
+<div class="demo-gauge-set" role="group" aria-label="Set cluster load" style="display:flex;gap:8px;justify-self:center"><button type="button" class="sc-btn sc-btn--sm" data-v="18"><span>18 %</span></button><button type="button" class="sc-btn sc-btn--sm" data-v="54"><span>54 %</span></button><button type="button" class="sc-btn sc-btn--sm" data-v="91"><span>91 %</span></button></div>
+</div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
+/* each press re-targets the gauge from where the needle is: press twice mid-sweep and it turns without a jump */
+document.querySelector('#DialGauge .demo-gauge-set').addEventListener('click', function (e) {
+  var b = e.target.closest('button');
+  if (b) document.getElementById('demo-gauge').scGauge.set(+b.dataset.v);
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="Meter">
@@ -502,9 +504,16 @@ SoftConsole.init(document.currentScript.previousElementSibling);
   <div class="sc-rail"><span class="sc-led sc-led--warn"></span><span class="sc-rail__name">PSU B load</span><span class="sc-rail__value">91 %</span><span class="sc-meter sc-inset-1"><i style="--p:91%;--c:var(--warn)"></i></span></div>
   <div class="sc-rail"><span class="sc-led sc-led--off"></span><span class="sc-rail__name">Battery backup</span><span class="sc-rail__value">standby</span><span class="sc-meter sc-inset-1"><i style="--p:0%"></i></span></div>
 </div>
+<button type="button" class="sc-btn sc-btn--sm" id="demo-meter" style="margin-top:14px"><span>Shift loads</span></button>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
+/* change --p and the bar moves: it never jumps */
+document.getElementById('demo-meter').addEventListener('click', function () {
+  Array.prototype.forEach.call(document.querySelectorAll('#Meter .sc-rail .sc-meter > i'), function (bar, i) {
+    bar.style.setProperty('--p', Math.round(8 + Math.random() * 88) + '%');
+  });
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="SegmentDisplay">
@@ -574,9 +583,17 @@ SoftConsole.init(document.currentScript.previousElementSibling);
   <div class="sc-kpi sc-raised-2"><div class="sc-kpi__top"><span class="sc-label">Disk used</span><span class="sc-delta sc-delta--warn">▲ 4 pt</span></div><div class="sc-kpi__value"><span data-sc-count="71">71</span><small>%</small></div><span class="sc-meter sc-inset-1"><i style="--p:71%"></i></span></div>
   <div class="sc-kpi sc-raised-2 sc-kpi--link"><div class="sc-kpi__top"><span class="sc-label">Error rate</span><span class="sc-delta sc-delta--warn">▲ 0.15 pt</span></div><div class="sc-kpi__value"><span data-sc-count="0.42" data-dec="2">0.42</span><small>%</small></div><div class="sc-spark sc-spark--warn sc-inset-1" data-sc-spark="0.22,0.25,0.24,0.27,0.26,0.3,0.29,0.33,0.36,0.35,0.4,0.42"></div></div>
 </div>
+<button type="button" class="sc-btn sc-btn--sm" id="demo-kpi" style="margin-top:14px"><span>Refresh</span></button>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
+/* countUp carries on from the number on screen */
+document.getElementById('demo-kpi').addEventListener('click', function () {
+  var els = document.querySelectorAll('#KpiTile [data-sc-count]');
+  SoftConsole.countUp(els[0], Math.round(9000 + Math.random() * 6000));
+  SoftConsole.countUp(els[1], Math.round(40 + Math.random() * 50));
+  SoftConsole.countUp(els[2], +(0.1 + Math.random() * 0.6).toFixed(2), 2);
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="LineChart">
@@ -586,7 +603,8 @@ SoftConsole.init(document.currentScript.previousElementSibling);
 <div style="display:grid;gap:10px;max-width:420px"><div class="sc-label">Focus · one node against the fleet</div>
 <div class="sc-chart sc-inset-2" id="ca"></div><div class="sc-legend" id="la"></div>
 <div class="sc-label" style="margin-top:10px">Peers · side by side</div>
-<div class="sc-chart sc-inset-2" id="cb"></div><div class="sc-legend" id="lb"></div></div>
+<div class="sc-chart sc-inset-2" id="cb"></div><div class="sc-legend" id="lb"></div>
+<button type="button" class="sc-btn sc-btn--sm" id="demo-lines" style="justify-self:start"><span>New data</span></button></div>
 </div>
 <script>
 SoftConsole.init(document.currentScript.previousElementSibling);
@@ -594,6 +612,14 @@ function walk(seed, start) { var s = seed, v = start, out = []; for (var i = 0; 
 var series = [{ name: 'edge-01', data: walk(11, 52) }, { name: 'edge-02', data: walk(23, 61) }, { name: 'edge-12', data: walk(37, 64) }, { name: 'edge-15', data: walk(53, 38) }];
 SoftConsole.lines(document.getElementById('ca'), document.getElementById('la'), series, { mode: 'focus', focus: 2, label: 'CPU load, focus on edge-12' });
 SoftConsole.lines(document.getElementById('cb'), document.getElementById('lb'), series, { mode: 'peers', label: 'CPU load, four nodes' });
+/* calling lines() again with new data morphs both charts in place; the reveal does not replay */
+var demoSeed = 100;
+document.getElementById('demo-lines').addEventListener('click', function () {
+  demoSeed += 17;
+  var next = series.map(function (s, i) { return { name: s.name, data: walk(demoSeed + i * 13, 30 + i * 12) }; });
+  SoftConsole.lines(document.getElementById('ca'), document.getElementById('la'), next, { mode: 'focus', focus: 2, label: 'CPU load, focus on edge-12' });
+  SoftConsole.lines(document.getElementById('cb'), document.getElementById('lb'), next);
+});
 </script>
       </article>
       <article class="sc-panel sc-raised-2 card" id="ListRow">

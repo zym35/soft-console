@@ -16,11 +16,20 @@
 :where(html[data-mode="light"]) { color-scheme: light; }
 :where(html[data-mode="auto"]) { color-scheme: light dark; } /* the browser follows the OS, like the tokens */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-ui); animation-timing-function: var(--ease-standard); } /* SoftConsole.setMode() crossfade */
-:where(body) { margin: 0; background: var(--surface); color: var(--text-1); font: 400 15px/1.47 var(--font-ui); -webkit-font-smoothing: antialiased; }
+::view-transition-group(sc-lightbox) { animation-duration: var(--dur-spring); animation-timing-function: var(--ease-spring); } /* a lightbox grows out of its thumbnail (SoftConsole.dialog) */
+::view-transition-image-pair(sc-lightbox) { border-radius: var(--radius-lg); overflow: clip; }
+::view-transition-old(sc-lightbox), ::view-transition-new(sc-lightbox) { height: 100%; object-fit: cover; }
+:where(body) { margin: 0; background: var(--surface); color: var(--text-1); font: 400 .9375rem/1.47 var(--font-ui); -webkit-font-smoothing: antialiased; }
 :where(.sc-root) *, :where(.sc-root) *::before, :where(.sc-root) *::after { box-sizing: border-box; }
 .sc-mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
-.sc-ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sc-ic { width: 1.25rem; height: 1.25rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 :where([class^="sc-"], [class*=" sc-"]):focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 3px; }
+
+/* no linear(): the spring easing falls back to the standard curve over dur-ui */
+@supports not (transition-timing-function: linear(0, 1)) { :root { --ease-spring: var(--ease-standard); --dur-spring: var(--dur-ui); } }
+
+/* a tap on a control is a tap: no double-tap-zoom wait, so a press lands without the 300ms delay */
+.sc-btn, .sc-segmented > button, .sc-togglegroup > button, .sc-check, .sc-nav-item, .sc-list__row, .sc-select__trigger, .sc-select__option, .sc-legend button, .sc-kpi--link, .sc-disclosure > summary, button.sc-frame { touch-action: manipulation; }
 
 /* ---------- surface grammar ---------- */
 .sc-raised-1, .sc-raised-2, .sc-raised-3, .sc-pressed, .sc-inset-1, .sc-inset-2 { background: var(--surface); border: 1px solid; }
@@ -34,18 +43,18 @@
 .sc-inset-2 { box-shadow: var(--inset-2); }
 
 /* ---------- panel ---------- */
-.sc-panel { display: grid; gap: calc(var(--pad-panel) - 4px); align-content: start; min-width: 0; padding: var(--pad-panel); border-radius: var(--radius-xl); }
+.sc-panel { display: grid; gap: calc(var(--pad-panel) - .25rem); align-content: start; min-width: 0; padding: var(--pad-panel); border-radius: var(--radius-xl); }
 .sc-panel > * { min-width: 0; } /* wide content (tables, charts) scrolls inside the panel instead of pushing it wider */
 .sc-panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
-.sc-panel__title { margin: 0; font: 600 17px/1.4 var(--font-ui); }
-.sc-label { font: 600 11.5px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
-.sc-note { font-size: 12.5px; color: var(--text-3); }
+.sc-panel__title { margin: 0; font: 600 1.0625rem/1.4 var(--font-ui); }
+.sc-label { font: 600 .71875rem/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.sc-note { font-size: .78125rem; color: var(--text-3); }
 
 /* ---------- button ---------- */
 .sc-btn {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   height: var(--ctl-h); padding: 0 calc(var(--ctl-h) * .45); border-radius: var(--radius-md);
-  font: 600 14px/1 var(--font-ui); letter-spacing: .02em; color: var(--text-1);
+  font: 600 .875rem/1 var(--font-ui); letter-spacing: .02em; color: var(--text-1);
   background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi);
   box-shadow: var(--btn-rest); cursor: pointer;
   transition: box-shadow var(--dur-press) var(--ease-standard), border-color var(--dur-press), color .15s;
@@ -53,7 +62,8 @@
 .sc-btn > * { transition: transform var(--dur-press) var(--ease-standard); }
 .sc-btn:hover { box-shadow: var(--btn-hover); }
 .sc-btn:active, .sc-btn[aria-pressed="true"] { box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
-.sc-btn:active > * { transform: scale(.97); }
+.sc-btn:active, .sc-btn[aria-pressed="true"] { transition-duration: var(--dur-press-in); } /* pressing in is fast; release keeps dur-press */
+.sc-btn:active > * { transform: scale(.97); transition-duration: var(--dur-press-in); }
 .sc-btn[aria-pressed="true"] { color: var(--accent-text); }
 .sc-btn--primary { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: var(--accent-ink); border-color: transparent; box-shadow: var(--raised-1), 0 0 22px -4px var(--accent-glow); }
 .sc-btn--primary:hover { box-shadow: var(--raised-1), 0 0 28px -2px var(--accent-glow); }
@@ -68,67 +78,80 @@
 .sc-btn--danger:active:not(:disabled) { box-shadow: var(--btn-press), 0 0 calc(14px * var(--glow)) calc(-6px * var(--glow)) color-mix(in srgb, var(--crit) 70%, transparent); }
 .sc-btn:disabled { box-shadow: var(--btn-flat); border-color: var(--rule); color: var(--text-off); cursor: not-allowed; }
 .sc-btn:disabled > * { transform: none; }
-.sc-btn--sm { height: calc(var(--ctl-h) - 10px); padding: 0 14px; font-size: 13px; }
-.sc-btn .sc-ic { width: 18px; height: 18px; }
-.sc-ibtn { width: calc(var(--ctl-h) + 4px); padding: 0; height: calc(var(--ctl-h) + 4px); color: var(--text-2); }
+.sc-btn--sm { height: calc(var(--ctl-h) - .625rem); padding: 0 .875rem; font-size: .8125rem; }
+.sc-btn .sc-ic { width: 1.125rem; height: 1.125rem; }
+.sc-ibtn { width: calc(var(--ctl-h) + .25rem); padding: 0; height: calc(var(--ctl-h) + .25rem); color: var(--text-2); }
 .sc-ibtn:hover { color: var(--text-1); }
 .sc-ibtn[aria-pressed="true"] { color: var(--accent-text); }
-.sc-ibtn.sc-btn--sm { width: calc(var(--ctl-h) - 6px); height: calc(var(--ctl-h) - 6px); border-radius: var(--radius-sm); }
+.sc-ibtn.sc-btn--sm { width: calc(var(--ctl-h) - .375rem); height: calc(var(--ctl-h) - .375rem); border-radius: var(--radius-sm); }
 
 /* selected marker: an accent underline across the item's inner width.
    A 2px border (borders snap to whole pixels) at a whole-pixel offset, untransformed at rest,
    so it renders as heavy as the label's strokes at every size. */
-.sc-btn::after, .sc-segmented > button::after, .sc-togglegroup > button::after, .sc-nav-item::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
-.sc-segmented > button::after, .sc-togglegroup > button::after, .sc-btn--sm::after { left: 8px; right: 8px; }
+.sc-btn::after, .sc-segmented > button::after, .sc-togglegroup > button::after, .sc-nav-item::after { content: ""; position: absolute; left: .625rem; right: .625rem; bottom: var(--marker-y, 4px); height: 0; border-top: 2px solid var(--accent); border-radius: 1px; transform: scaleX(0); transition: transform var(--dur-spring) var(--ease-spring); pointer-events: none; }
+.sc-segmented > button::after, .sc-togglegroup > button::after, .sc-btn--sm::after { left: .5rem; right: .5rem; }
 .sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-togglegroup > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { transform: none; }
 .sc-btn--danger::after { border-top-color: var(--crit); }
 
 /* ---------- segmented control ---------- */
-.sc-segmented { display: inline-flex; gap: 4px; padding: 5px; border-radius: calc(var(--radius-md) + 3px); }
-.sc-segmented > button { position: relative; height: calc(var(--ctl-h) - 10px); padding: 0 14px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 13px/1 var(--font-ui); letter-spacing: .03em; cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
+.sc-segmented { display: inline-flex; gap: .25rem; padding: .3125rem; border-radius: calc(var(--radius-md) + 3px); }
+.sc-segmented > button { position: relative; height: calc(var(--ctl-h) - .625rem); padding: 0 .875rem; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 .8125rem/1 var(--font-ui); letter-spacing: .03em; cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
 .sc-segmented > button:hover { color: var(--text-1); }
-.sc-segmented > button[aria-pressed="true"] { box-shadow: var(--btn-press); color: var(--accent-text); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+.sc-segmented > button:active:not(:disabled), .sc-segmented > button[aria-pressed="true"] { box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); transition-duration: var(--dur-press-in); }
+.sc-segmented > button[aria-pressed="true"] { color: var(--accent-text); }
 
 /* ---------- toggle group: a segmented control in which each option turns on or off on its own ---------- */
-.sc-togglegroup { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 5px; border-radius: calc(var(--radius-md) + 3px); }
-.sc-togglegroup > button { position: relative; height: calc(var(--ctl-h) - 10px); min-width: 46px; padding: 0 12px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 13px/1 var(--font-ui); cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
+.sc-togglegroup { display: inline-flex; flex-wrap: wrap; gap: .25rem; padding: .3125rem; border-radius: calc(var(--radius-md) + 3px); }
+.sc-togglegroup > button { position: relative; height: calc(var(--ctl-h) - .625rem); min-width: 2.875rem; padding: 0 .75rem; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; box-shadow: var(--btn-flat); color: var(--text-2); font: 600 .8125rem/1 var(--font-ui); cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
 .sc-togglegroup > button:hover { color: var(--text-1); }
-.sc-togglegroup > button[aria-pressed="true"] { box-shadow: var(--btn-press); color: var(--accent-text); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
+.sc-togglegroup > button:active:not(:disabled), .sc-togglegroup > button[aria-pressed="true"] { box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); transition-duration: var(--dur-press-in); }
+.sc-togglegroup > button[aria-pressed="true"] { color: var(--accent-text); }
 .sc-togglegroup > button:disabled { color: var(--text-off); cursor: not-allowed; }
 
 /* ---------- side nav: labeled navigation rail; the current page presses in like a selected segment ---------- */
 .sc-sidenav { display: grid; gap: var(--space-1); align-content: start; } /* items keep their height when the rail stretches */
-.sc-nav-item { position: relative; display: flex; align-items: center; gap: var(--space-3); height: calc(var(--ctl-h) - 2px); padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid transparent; color: var(--text-2); font: 600 14px/1 var(--font-ui); text-decoration: none; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
-.sc-nav-item .sc-ic { width: 18px; height: 18px; }
+.sc-nav-item { position: relative; display: flex; align-items: center; gap: var(--space-3); height: calc(var(--ctl-h) - .125rem); padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid transparent; color: var(--text-2); font: 600 .875rem/1 var(--font-ui); text-decoration: none; transition: box-shadow var(--dur-press) var(--ease-standard), color .15s, border-color var(--dur-press); }
+.sc-nav-item .sc-ic { width: 1.125rem; height: 1.125rem; }
 .sc-nav-item:hover { color: var(--text-1); }
-.sc-nav-item[aria-current="page"] { color: var(--accent-text); box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
-.sc-nav-group { display: grid; gap: 2px; margin: 0 0 var(--space-2) 21px; padding-left: var(--space-2); border-left: 1px solid var(--rule); }
-.sc-nav-group .sc-nav-item { height: calc(var(--ctl-h) - 8px); font-size: 13px; font-weight: 500; }
+.sc-nav-item:active, .sc-nav-item[aria-current="page"] { box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); transition-duration: var(--dur-press-in); }
+.sc-nav-item[aria-current="page"] { color: var(--accent-text); }
+.sc-nav-group { display: grid; gap: .125rem; margin: 0 0 var(--space-2) 1.3125rem; padding-left: var(--space-2); border-left: 1px solid var(--rule); }
+.sc-nav-group .sc-nav-item { height: calc(var(--ctl-h) - .5rem); font-size: .8125rem; font-weight: 500; }
 
 /* ---------- breadcrumb ---------- */
-.sc-crumbs { display: flex; align-items: center; gap: var(--space-2); font: 600 14px/1 var(--font-ui); color: var(--text-1); }
+.sc-crumbs { display: flex; align-items: center; gap: var(--space-2); font: 600 .875rem/1 var(--font-ui); color: var(--text-1); }
 .sc-crumbs a { color: var(--text-3); text-decoration: none; }
 .sc-crumbs a:hover { color: var(--text-1); }
-.sc-crumbs .sc-ic { width: 14px; height: 14px; color: var(--text-off); }
+.sc-crumbs .sc-ic { width: .875rem; height: .875rem; color: var(--text-off); }
 
 /* ---------- avatar: initials on a convex disc ---------- */
-.sc-avatar { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font: 600 13px/1 var(--font-ui); color: var(--accent-text); background: linear-gradient(145deg, var(--surface-up), var(--surface-down)); }
+.sc-avatar { display: inline-grid; place-items: center; width: 2rem; height: 2rem; flex: none; border-radius: 50%; font: 600 .8125rem/1 var(--font-ui); color: var(--accent-text); background: linear-gradient(145deg, var(--surface-up), var(--surface-down)); }
 
-/* ---------- switch: inset track, raised knob with an inset accent ring when on ---------- */
+/* ---------- switch: inset track, raised knob with an inset accent ring when on ----------
+   Pressing stretches the knob toward the side it will travel (--sc-stretch): a knob at rest on the left grows right, one on
+   the right grows left. Dragging it (SoftConsole.init) sets --sc-drag, the knob's offset along the track. */
 @property --sc-ring { syntax: "<color>"; inherits: false; initial-value: transparent; }
-.sc-switch { position: relative; width: 54px; height: 30px; flex: none; padding: 0; border-radius: var(--radius-pill); cursor: pointer; transition: background-color var(--dur-ui); }
-.sc-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; --sc-ring: var(--rule); background: radial-gradient(circle closest-side, transparent calc(100% - 5px), var(--sc-ring) calc(100% - 4.5px) calc(100% - 2.5px), transparent calc(100% - 2px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); transition: transform var(--dur-ui) var(--ease-standard), --sc-ring var(--dur-ui); }
+.sc-switch { --sc-stretch: 0px; position: relative; width: 54px; height: 30px; flex: none; padding: 0; border-radius: var(--radius-pill); cursor: pointer; touch-action: pan-y; transition: background-color var(--dur-ui); } /* pan-y: a horizontal drag is the knob's */
+.sc-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: calc(22px + var(--sc-stretch)); height: 22px; border-radius: 50%; --sc-ring: var(--rule); background: radial-gradient(ellipse closest-side, transparent calc(100% - 5px), var(--sc-ring) calc(100% - 4.5px) calc(100% - 2.5px), transparent calc(100% - 2px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); transition: transform var(--dur-spring) var(--ease-spring), width var(--dur-spring) var(--ease-spring), --sc-ring var(--dur-ui); }
 .sc-switch[aria-checked="true"] { background-color: var(--accent-tint); }
-.sc-switch[aria-checked="true"]::after { transform: translateX(24px); --sc-ring: var(--accent-mark); }
+.sc-switch[aria-checked="true"]::after { transform: translateX(calc(24px - var(--sc-stretch))); --sc-ring: var(--accent-mark); }
+.sc-switch:active, .sc-switch.is-drag { --sc-stretch: 6px; }
+.sc-switch:active::after { transition: transform var(--dur-press-in) var(--ease-standard), width var(--dur-press-in) var(--ease-standard), --sc-ring var(--dur-ui); } /* stretching is fast; letting go is the spring */
+.sc-switch.is-drag::after { transform: translateX(var(--sc-drag, 0px)); transition: width var(--dur-press-in) var(--ease-standard), --sc-ring var(--dur-ui); } /* the knob follows the pointer with no easing */
+.sc-switch[data-lean="on"] { background-color: var(--accent-tint); } .sc-switch[data-lean="on"]::after { --sc-ring: var(--accent-mark); }
+.sc-switch[data-lean="off"] { background-color: var(--surface); } .sc-switch[data-lean="off"]::after { --sc-ring: var(--rule); }
 .sc-switch-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 
 /* ---------- slider ---------- */
 .sc-range { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --pct: 50%; }
 .sc-range::-webkit-slider-runnable-track { height: 12px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent-2), var(--accent)) 3px 3px / calc(var(--pct) - 3px) 6px no-repeat, var(--surface); box-shadow: var(--inset-1); }
-.sc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -7px; border: 0; border-radius: 50%; background: radial-gradient(circle closest-side, transparent calc(100% - 6px), var(--accent-mark) calc(100% - 5.5px) calc(100% - 3.5px), transparent calc(100% - 3px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); }
+.sc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -7px; border: 0; border-radius: 50%; background: radial-gradient(circle closest-side, transparent calc(100% - 6px), var(--accent-mark) calc(100% - 5.5px) calc(100% - 3.5px), transparent calc(100% - 3px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); transition: box-shadow var(--dur-press) var(--ease-standard), transform var(--dur-press) var(--ease-standard); }
 .sc-range::-moz-range-track { height: 12px; border-radius: var(--radius-pill); background: var(--surface); box-shadow: var(--inset-1); }
 .sc-range::-moz-range-progress { height: 6px; margin-left: 3px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
-.sc-range::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 50%; background: radial-gradient(circle closest-side, transparent calc(100% - 6px), var(--accent-mark) calc(100% - 5.5px) calc(100% - 3.5px), transparent calc(100% - 3px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); }
+.sc-range::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 50%; background: radial-gradient(circle closest-side, transparent calc(100% - 6px), var(--accent-mark) calc(100% - 5.5px) calc(100% - 3.5px), transparent calc(100% - 3px)), linear-gradient(145deg, var(--surface-up), var(--surface-down)); box-shadow: var(--raised-1); transition: box-shadow var(--dur-press) var(--ease-standard), transform var(--dur-press) var(--ease-standard); }
+/* the thumb presses in like a button: inset shadow and a slight shrink, fast in and slower out */
+.sc-range:active::-webkit-slider-thumb { box-shadow: var(--btn-press); transform: scale(.94); transition-duration: var(--dur-press-in); }
+.sc-range:active::-moz-range-thumb { box-shadow: var(--btn-press); transform: scale(.94); transition-duration: var(--dur-press-in); }
 .sc-range-out { font: 500 13px var(--font-data); color: var(--accent-text); }
 
 /* ---------- checkbox and radio ---------- */
@@ -142,62 +165,64 @@
 .sc-check-row { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; }
 
 /* ---------- field ---------- */
-.sc-field { display: flex; align-items: center; gap: 10px; height: var(--ctl-h); padding: 0 14px; border-radius: var(--radius-md); color: var(--text-3); }
+.sc-field { display: flex; align-items: center; gap: .625rem; height: var(--ctl-h); padding: 0 .875rem; border-radius: var(--radius-md); color: var(--text-3); }
 .sc-field:focus-within { outline: 2px solid var(--accent-mark); outline-offset: 2px; }
 .sc-field input, .sc-field select { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; color: var(--text-1); font: inherit; -webkit-appearance: none; appearance: none; }
 .sc-field input::placeholder { color: var(--text-3); }
 .sc-field select option { background: var(--surface); color: var(--text-1); }
-.sc-field__unit { font: 500 13px var(--font-data); color: var(--text-3); }
+.sc-field__unit { font: 500 .8125rem var(--font-data); color: var(--text-3); }
 
 /* ---------- select: SoftConsole.init upgrades a native <select> in .sc-field into this listbox ---------- */
-@keyframes sc-pop { from { opacity: 0; transform: translateY(-4px); } }
+/* the select list grows out of the field: --pop-y and the origin flip when the list opens upward */
 .sc-select { position: relative; padding: 0; }
 .sc-select__native { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.sc-select__trigger { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: none; border: 0; border-radius: inherit; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; }
+.sc-select__trigger { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: .625rem; padding: 0 .875rem; background: none; border: 0; border-radius: inherit; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; }
 .sc-select__trigger:focus-visible { outline: none; }
 .sc-select__trigger:disabled { color: var(--text-off); cursor: not-allowed; }
 .sc-select__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sc-select__chev { color: var(--text-3); transition: transform var(--dur-ui) var(--ease-standard), color var(--dur-ui); }
+.sc-select__chev { color: var(--text-3); transition: transform var(--dur-spring) var(--ease-spring), color var(--dur-ui); }
 .sc-select.is-open .sc-select__chev { transform: rotate(180deg); color: var(--accent-text); }
-.sc-select__list { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 30; display: grid; gap: 2px; max-height: 280px; overflow-y: auto; margin: 0; padding: 5px; list-style: none; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--float); animation: sc-pop var(--dur-ui) var(--ease-standard); }
+.sc-select__list { position: absolute; left: 0; right: 0; top: calc(100% + .5rem); z-index: 30; display: grid; gap: .125rem; max-height: 17.5rem; overflow-y: auto; margin: 0; padding: .3125rem; list-style: none; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--float); transform-origin: top; opacity: 0; transform: translateY(var(--pop-y, -4px)) scale(.98); pointer-events: none; transition: opacity var(--dur-ui) var(--ease-standard), transform var(--dur-spring) var(--ease-spring); }
 .sc-select__list[hidden] { display: none; }
-.sc-select.is-up .sc-select__list { top: auto; bottom: calc(100% + 8px); }
-.sc-select__option { position: relative; display: flex; align-items: center; min-height: calc(var(--ctl-h) - 8px); padding: 0 36px 0 12px; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-2); cursor: pointer; }
+.sc-select.is-open .sc-select__list { opacity: 1; transform: none; pointer-events: auto; } /* closing removes is-open: the list sinks back toward the field, then SoftConsole.select hides it */
+.sc-select.is-up .sc-select__list { top: auto; bottom: calc(100% + .5rem); transform-origin: bottom; --pop-y: 4px; }
+.sc-select__option { position: relative; display: flex; align-items: center; min-height: calc(var(--ctl-h) - .5rem); padding: 0 2.25rem 0 .75rem; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-2); cursor: pointer; transition: box-shadow var(--dur-press) var(--ease-standard), border-color var(--dur-press); }
+.sc-select__option:active:not([aria-disabled="true"]) { background: var(--surface); color: var(--text-1); box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); transition-duration: var(--dur-press-in); }
 .sc-select__option.is-active { background: var(--surface-up); color: var(--text-1); }
 .sc-select__option[aria-selected="true"] { background: var(--surface); color: var(--accent-text); box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); }
 .sc-select__option[aria-selected="true"]::after { content: ""; position: absolute; right: 14px; top: 50%; width: 9px; height: 4.5px; margin-top: -4px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
 .sc-select__option[aria-disabled="true"] { color: var(--text-off); cursor: not-allowed; }
-.sc-select__group { padding: 8px 12px 4px; font: 600 10.5px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.sc-select__group { padding: .5rem .75rem .25rem; font: 600 .65625rem/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
 
 /* ---------- text area: multi-line recessed field with a mono footer ---------- */
 .sc-textarea { display: grid; border-radius: var(--radius-md); }
 .sc-textarea:focus-within { outline: 2px solid var(--accent-mark); outline-offset: 2px; }
-.sc-textarea textarea { display: block; width: 100%; min-height: 260px; padding: 14px; resize: vertical; background: none; border: 0; outline: none; color: var(--text-1); font: 400 13px/1.65 var(--font-data); }
+.sc-textarea textarea { display: block; width: 100%; min-height: 16.25rem; padding: .875rem; resize: vertical; background: none; border: 0; outline: none; color: var(--text-1); font: 400 .8125rem/1.65 var(--font-data); }
 .sc-textarea textarea:disabled { color: var(--text-off); }
-.sc-textarea__foot { display: flex; justify-content: flex-end; padding: 6px 14px 8px; border-top: 1px solid var(--rule); font: 500 12px var(--font-data); color: var(--text-3); }
+.sc-textarea__foot { display: flex; justify-content: flex-end; padding: .375rem .875rem .5rem; border-top: 1px solid var(--rule); font: 500 .75rem var(--font-data); color: var(--text-3); }
 
 /* ---------- file field: recessed well with a raised choose button ---------- */
-.sc-file { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--ctl-h); padding: 4px 6px 4px 14px; border-radius: var(--radius-md); color: var(--text-3); font-size: 13px; }
+.sc-file { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--ctl-h); padding: .25rem .375rem .25rem .875rem; border-radius: var(--radius-md); color: var(--text-3); font-size: .8125rem; }
 .sc-file:focus-within { outline: 2px solid var(--accent-mark); outline-offset: 2px; }
 .sc-file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .sc-file__name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* ---------- form row: visible label, the control, then a hint or an error ---------- */
-.sc-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--space-5); align-items: start; }
+.sc-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-5); align-items: start; }
 .sc-form > .sc-check-row, .sc-form > fieldset, .sc-form > .sc-form-row--wide { grid-column: 1 / -1; }
 .sc-form-row { display: grid; gap: var(--space-2); min-width: 0; margin: 0; padding: 0; border: 0; }
-.sc-form-row__label { padding: 0; font: 600 13px/1.3 var(--font-ui); color: var(--text-2); }
+.sc-form-row__label { padding: 0; font: 600 .8125rem/1.3 var(--font-ui); color: var(--text-2); }
 .sc-form-row .sc-note { margin: 0; }
 
 /* ---------- save bar: unsaved state, Discard and the primary Save for one editable unit ----------
    The same bar closes every editable thing (a settings form, a file, a draft), so saving always
    looks the same. Save is the view's primary action and stays flat until there is something to save. */
 .sc-savebar { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); flex-wrap: wrap; min-width: 0; }
-.sc-savebar__status { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: 13px; color: var(--text-2); }
+.sc-savebar__status { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: .8125rem; color: var(--text-2); }
 .sc-savebar__status:empty { display: none; }
 
 /* ---------- status: chip, LED ---------- */
-.sc-chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font: 600 12.5px/1 var(--font-ui); color: var(--text-2); box-shadow: var(--btn-press); }
+.sc-chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font: 600 .78125rem/1 var(--font-ui); color: var(--text-2); box-shadow: var(--btn-press); }
 .sc-led { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--c, var(--ok-led)); box-shadow: 0 0 0 2px var(--slot), 0 0 9px 1px color-mix(in srgb, var(--c, var(--ok-led)) 65%, transparent); }
 .sc-led--ok { --c: var(--ok-led); } .sc-led--warn { --c: var(--warn-led); } .sc-led--crit { --c: var(--crit-led); } .sc-led--info { --c: var(--info-led); }
 .sc-led--off { background: var(--slot); box-shadow: inset 1px 1px 2px var(--shade-lo), 0 0 0 2px var(--slot); }
@@ -205,45 +230,56 @@
 @keyframes sc-blink { 50% { opacity: .35; } }
 
 /* ---------- callout: one inline message in a well; LED plus words ---------- */
-.sc-callout { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px var(--space-3); padding: 12px 14px; border-radius: var(--radius-md); font-size: 13.5px; color: var(--text-2); overflow-wrap: anywhere; }
+.sc-callout { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: .25rem var(--space-3); padding: .75rem .875rem; border-radius: var(--radius-md); font-size: .84375rem; color: var(--text-2); overflow-wrap: anywhere; }
 .sc-callout > .sc-led { position: relative; top: -1px; }
-.sc-callout > div { display: grid; gap: 4px; min-width: 0; }
+.sc-callout > div { display: grid; gap: .25rem; min-width: 0; }
 .sc-callout b { color: var(--c, var(--text-1)); font-weight: 600; }
 .sc-callout--ok { --c: var(--ok); } .sc-callout--warn { --c: var(--warn); } .sc-callout--crit { --c: var(--crit); } .sc-callout--info { --c: var(--info); }
 .sc-callout p { margin: 0; }
-.sc-callout .sc-btn { justify-self: start; margin-top: 6px; }
+.sc-callout .sc-btn { justify-self: start; margin-top: .375rem; }
 
 /* ---------- tooltip: help text on a small raised bubble ----------
    Centering uses the translate property; transform only carries the 4px rise,
    so overriding one never shifts the other. */
 .sc-tip { position: relative; display: inline-flex; }
-.sc-tip__bubble { position: absolute; bottom: calc(100% + 10px); left: 50%; translate: -50% 0; z-index: 40; width: max-content; max-width: 260px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--float); font: 500 12.5px/1.55 var(--font-ui); color: var(--text-2); text-align: left; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-ui) var(--ease-standard), transform var(--dur-ui) var(--ease-standard); pointer-events: none; }
+.sc-tip__bubble { position: absolute; bottom: calc(100% + .625rem); left: 50%; translate: -50% 0; z-index: 40; width: max-content; max-width: 16.25rem; padding: .625rem .75rem; border-radius: var(--radius-md); background: var(--surface); border: 1px solid; border-color: var(--edge-hi) var(--edge-lo) var(--edge-lo) var(--edge-hi); box-shadow: var(--float); font: 500 .78125rem/1.55 var(--font-ui); color: var(--text-2); text-align: left; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-ui) var(--ease-standard), transform var(--dur-spring) var(--ease-spring); pointer-events: none; }
 .sc-tip--end .sc-tip__bubble { left: auto; right: 0; translate: none; }
 .sc-tip:hover .sc-tip__bubble, .sc-tip:focus-within .sc-tip__bubble { opacity: 1; transform: none; }
 
 /* ---------- dialog: raised-3 panel over a scrim; SoftConsole.dialog() opens and closes it ---------- */
 .sc-scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--shade-lo) 70%, transparent); backdrop-filter: blur(2px); }
 .sc-scrim[hidden] { display: none; }
+/* SoftConsole.dialog() adds is-fx, then is-open while open. Closing removes is-open: the scrim fades and the box sinks back the way it came; the script hides it afterwards. */
+.sc-scrim.is-fx { opacity: 0; pointer-events: none; transition: opacity var(--dur-ui) var(--ease-standard); }
+.sc-scrim.is-fx.is-open { opacity: 1; pointer-events: auto; }
+.sc-scrim.is-fx .sc-dialog, .sc-scrim.is-fx .sc-lightbox { transform: translateY(10px); transition: transform var(--dur-spring) var(--ease-spring); }
+.sc-scrim.is-fx.is-open .sc-dialog, .sc-scrim.is-fx.is-open .sc-lightbox { transform: none; }
+.sc-scrim.is-vt, .sc-scrim.is-vt .sc-dialog, .sc-scrim.is-vt .sc-lightbox { transition: none; } /* a lightbox that morphs from its thumbnail lets the view transition do the fading */
 .sc-dialog, .sc-dialog.sc-raised-3 { box-shadow: var(--float); }
-.sc-dialog { display: grid; gap: var(--space-4); width: min(100%, 480px); max-height: calc(100vh - 32px); overflow: auto; padding: var(--pad-panel); border-radius: var(--radius-xl); animation: sc-rise var(--dur-ui) var(--ease-standard); }
+.sc-dialog { display: grid; gap: var(--space-4); width: min(100%, 30rem); max-height: calc(100vh - 2rem); overflow: auto; padding: var(--pad-panel); border-radius: var(--radius-xl); }
 .sc-dialog:focus-visible { outline: none; }
 .sc-dialog__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.sc-dialog__title { margin: 0; font: 600 17px/1.4 var(--font-ui); }
+.sc-dialog__title { margin: 0; font: 600 1.0625rem/1.4 var(--font-ui); }
 .sc-dialog p { margin: 0; color: var(--text-2); line-height: 1.6; }
 .sc-dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-3); }
 
 /* ---------- toast: transient confirmation, bottom center; centered with translate so the rise never shifts it ---------- */
-.sc-toast { position: fixed; bottom: var(--space-6); left: 50%; z-index: 60; display: inline-flex; align-items: center; gap: var(--space-3); height: var(--ctl-h); padding: 0 18px; border-radius: var(--radius-pill); font: 600 13.5px/1 var(--font-ui); color: var(--text-1); translate: -50% 0; box-shadow: var(--float); animation: sc-rise var(--dur-ui) var(--ease-standard); }
+.sc-toast { position: fixed; bottom: var(--space-6); left: 50%; z-index: 60; display: inline-flex; align-items: center; gap: var(--space-3); height: var(--ctl-h); padding: 0 1.125rem; border-radius: var(--radius-pill); font: 600 .84375rem/1 var(--font-ui); color: var(--text-1); max-width: calc(100vw - 2rem); translate: -50% 0; box-shadow: var(--float); animation: sc-rise var(--dur-ui) var(--ease-standard); }
+/* SoftConsole.toast: enters and leaves on transitions, so it can turn around mid-motion. is-fx replaces the static rise keyframe */
+.sc-toast.is-fx { animation: none; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity var(--dur-ui) var(--ease-standard), transform var(--dur-spring) var(--ease-spring); }
+.sc-toast.is-fx.is-open { opacity: 1; transform: none; pointer-events: auto; }
+.sc-toast__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-toast--action { padding-right: .25rem; }
 
 /* ---------- segment display ---------- */
-.sc-display { padding: 9px; border-radius: var(--radius-lg); }
-.sc-display__glass { --seg-on: var(--lcd-ink); --seg-ghost: var(--lcd-ghost); display: grid; gap: var(--space-2); padding: 12px 18px 16px; border-radius: max(4px, calc(var(--radius-lg) - 8px)); color: var(--lcd-ink); background: linear-gradient(168deg, var(--lcd-sheen), transparent 42%), var(--lcd-glass); box-shadow: inset 2px 3px 7px var(--lcd-shade), inset -1px -1px 0 var(--lcd-sheen); }
+.sc-display { padding: .5625rem; border-radius: var(--radius-lg); }
+.sc-display__glass { --seg-on: var(--lcd-ink); --seg-ghost: var(--lcd-ghost); display: grid; gap: var(--space-2); padding: .75rem 1.125rem 1rem; border-radius: max(4px, calc(var(--radius-lg) - 8px)); color: var(--lcd-ink); background: linear-gradient(168deg, var(--lcd-sheen), transparent 42%), var(--lcd-glass); box-shadow: inset 2px 3px 7px var(--lcd-shade), inset -1px -1px 0 var(--lcd-sheen); }
 .sc-display--live .sc-display__glass { --seg-on: var(--vfd-ink); --seg-ghost: var(--vfd-ghost); color: var(--vfd-ink); background: radial-gradient(130% 120% at 15% 0%, var(--vfd-glass-2), var(--vfd-glass) 70%); box-shadow: inset 3px 4px 10px var(--vfd-shade); }
 .sc-display--live .sc-seg7 svg { filter: drop-shadow(0 0 6px var(--vfd-glow)); }
-.sc-display__top { display: flex; justify-content: space-between; gap: 10px; font: 600 10.5px/1 var(--font-data); letter-spacing: .14em; text-transform: uppercase; opacity: .78; }
-.sc-display__row { display: flex; align-items: flex-end; gap: 10px; }
-.sc-display__unit { padding-bottom: 5px; font: 600 15px/1 var(--font-data); }
-.sc-seg7 { font-size: 54px; line-height: 0; }
+.sc-display__top { display: flex; justify-content: space-between; gap: .625rem; font: 600 .65625rem/1 var(--font-data); letter-spacing: .14em; text-transform: uppercase; opacity: .78; }
+.sc-display__row { display: flex; align-items: flex-end; gap: .625rem; }
+.sc-display__unit { padding-bottom: .3125rem; font: 600 .9375rem/1 var(--font-data); }
+.sc-seg7 { font-size: 3.375rem; line-height: 0; }
 .sc-seg7 svg { display: block; width: auto; height: 1em; }
 .sc-seg7 .on { fill: var(--seg-on, var(--accent-text)); }
 .sc-seg7 .off { fill: var(--seg-ghost, var(--vfd-ghost)); }
@@ -253,16 +289,16 @@
    lit segments use the display's --seg-on, unlit ones stay faintly visible as --seg-ghost. The
    seven-segment readout shows the total, or the column under the pointer or keyboard cursor.
    Columns are capped at 40px and spread evenly, so wide panels keep the meter look. Drawn by SoftConsole.segbars(). */
-.sc-segbars { display: grid; gap: 10px; min-width: 0; }
-.sc-segbars__head .sc-seg7 { font-size: 40px; }
-.sc-segbars__unit { padding-bottom: 3px; font: 600 13px/1 var(--font-data); }
-.sc-segbars__body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; }
-.sc-segbars__scale { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 20px; font: 600 9.5px/1 var(--font-data); letter-spacing: .06em; text-align: right; opacity: .62; }
-.sc-segbars__graph { display: grid; gap: 6px; min-width: 0; outline: none; border-radius: 4px; }
+.sc-segbars { display: grid; gap: .625rem; min-width: 0; }
+.sc-segbars__head .sc-seg7 { font-size: 2.5rem; }
+.sc-segbars__unit { padding-bottom: .1875rem; font: 600 .8125rem/1 var(--font-data); }
+.sc-segbars__body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .625rem; }
+.sc-segbars__scale { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 1.25rem; font: 600 .59375rem/1 var(--font-data); letter-spacing: .06em; text-align: right; opacity: .62; }
+.sc-segbars__graph { display: grid; gap: .375rem; min-width: 0; outline: none; border-radius: 4px; }
 .sc-segbars__graph:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 4px; }
 .sc-display--live .sc-segbars__graph:focus-visible { outline-color: var(--vfd-ink); } /* on dark glass in both modes */
 .sc-segbars__cols, .sc-segbars__x { display: flex; justify-content: space-between; gap: var(--col-gap, 6px); min-width: 0; } /* the labels' min-content must not widen the graph in narrow panels */
-.sc-segbars__cols { align-items: stretch; height: 132px; }
+.sc-segbars__cols { align-items: stretch; height: 132px; touch-action: pan-y; } /* a horizontal drag scrubs the readout; a vertical one still scrolls the page */
 .sc-segbars__col { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; flex-direction: column-reverse; gap: 3px; cursor: default; }
 .sc-segbars__col i { flex: 1; border-radius: 1.5px; background: var(--seg-ghost); transition: background-color .15s, opacity .15s; }
 .sc-segbars__col i.on { background: var(--seg-on); opacity: .58; animation: sc-seg-light .35s steps(1, end) calc(var(--k) * 28ms + var(--c) * 18ms) backwards; }
@@ -272,24 +308,24 @@
 /* labels match the columns' width. When only every nth column is labelled (--sparse), a label may
    overflow into its unlabelled neighbours, and the first and last are pinned to the graph's edges
    so they never leave the glass. */
-.sc-segbars__x span { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; justify-content: center; font: 600 9.5px/1 var(--font-data); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; opacity: .55; }
+.sc-segbars__x span { flex: 1 1 0; min-width: 0; max-width: 2.5rem; display: flex; justify-content: center; font: 600 .59375rem/1 var(--font-data); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; opacity: .55; }
 .sc-segbars__x--sparse span:first-child { justify-content: flex-start; }
 .sc-segbars__x--sparse span:last-child { justify-content: flex-end; }
 .sc-segbars__x span.is-now, .sc-segbars__x span.is-cursor { opacity: 1; }
 
 /* ---------- jog wheel ---------- */
-.sc-jog-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
-.sc-jog { position: relative; height: 48px; overflow: hidden; border-radius: var(--radius-pill); cursor: ew-resize; touch-action: none; }
-.sc-jog.is-grab { cursor: grabbing; }
+.sc-jog-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .875rem; }
+.sc-jog { position: relative; height: 48px; overflow: hidden; border-radius: var(--radius-pill); cursor: ew-resize; touch-action: none; transition: box-shadow var(--dur-press) var(--ease-standard), border-color var(--dur-press); }
+.sc-jog.is-grab { cursor: grabbing; box-shadow: var(--btn-press); border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); transition-duration: var(--dur-press-in); } /* gripped, it presses in like a button */
 .sc-jog__ridges { position: absolute; inset: 6px 18px; opacity: .9; background: repeating-linear-gradient(90deg, var(--shade-hi) 0 1.5px, transparent 1.5px 3.5px, var(--shade-lo) 3.5px 5px, transparent 5px 8px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 28%, #000 72%, transparent); mask-image: linear-gradient(90deg, transparent, #000 28%, #000 72%, transparent); }
 .sc-jog::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, color-mix(in srgb, var(--surface-up) 50%, transparent), transparent 40%, color-mix(in srgb, var(--shade-lo) 35%, transparent)); }
 
 /* ---------- dial gauge ---------- */
-.sc-gauge { position: relative; width: min(100%, 250px); aspect-ratio: 1; margin-inline: auto; }
+.sc-gauge { position: relative; width: min(100%, 15.625rem); aspect-ratio: 1; margin-inline: auto; }
 .sc-gauge__face { position: absolute; inset: 6%; border-radius: 50%; }
 .sc-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .sc-gauge .trk { fill: none; stroke: var(--slot); stroke-width: 10; stroke-linecap: round; }
-.sc-gauge .val { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 1 1; animation: sc-sweep var(--dur-value) var(--ease-standard) .15s backwards; }
+.sc-gauge .val { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 1 1; } /* SoftConsole.gauge sets stroke-dashoffset (1 minus the fraction) frame by frame */
 /* the arc's SVG glow belongs to dark mode: nothing glows on the light material */
 :root[data-mode="light"] .sc-gauge .val { filter: none; }
 @media (prefers-color-scheme: light) { :root[data-mode="auto"] .sc-gauge .val { filter: none; } }
@@ -297,19 +333,19 @@
 .sc-gauge .tk.mj { stroke: var(--text-3); stroke-width: 2.2; }
 .sc-gauge .tk.lit { stroke: var(--accent-text); }
 .sc-gauge .tl { fill: var(--text-3); font: 500 11px var(--font-data); }
-.sc-gauge__hub { position: absolute; left: 50%; top: 50%; width: 42%; aspect-ratio: 1; display: grid; place-content: center; gap: 2px; text-align: center; border-radius: 50%; transform: translate(-50%, -50%); background: linear-gradient(145deg, var(--surface-up), var(--surface-down)); }
-.sc-gauge__hub b { font: 500 27px/1 var(--font-data); font-variant-numeric: tabular-nums; }
-.sc-gauge__hub small { margin-left: 1px; font-size: 13px; color: var(--text-2); }
-.sc-gauge__hub > span { font: 600 9.5px/1.2 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.sc-gauge__hub { position: absolute; left: 50%; top: 50%; width: 42%; aspect-ratio: 1; display: grid; place-content: center; gap: .125rem; text-align: center; border-radius: 50%; transform: translate(-50%, -50%); background: linear-gradient(145deg, var(--surface-up), var(--surface-down)); }
+.sc-gauge__hub b { font: 500 1.6875rem/1 var(--font-data); font-variant-numeric: tabular-nums; }
+.sc-gauge__hub small { margin-left: 1px; font-size: .8125rem; color: var(--text-2); }
+.sc-gauge__hub > span { font: 600 .59375rem/1.2 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
 
 /* ---------- meter ---------- */
 .sc-rails { display: grid; gap: var(--space-4); }
-.sc-rail { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px 10px; }
-.sc-rail__name { font-weight: 500; font-size: 14px; }
-.sc-rail__value { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-2); }
+.sc-rail { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem .625rem; }
+.sc-rail__name { font-weight: 500; font-size: .875rem; }
+.sc-rail__value { font: 500 .8125rem var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-2); }
 .sc-meter { display: block; height: 12px; padding: 3px; border-radius: var(--radius-pill); }
 .sc-rail .sc-meter { grid-column: 1 / -1; }
-.sc-meter > i { display: block; height: 100%; width: var(--p); border-radius: var(--radius-pill); background: var(--c, var(--accent)); box-shadow: 0 0 calc(8px * var(--glow)) color-mix(in srgb, var(--c, var(--accent)) 45%, transparent); transform-origin: left; animation: sc-grow-x var(--dur-value) var(--ease-standard) .2s backwards; }
+.sc-meter > i { display: block; height: 100%; width: var(--p); border-radius: var(--radius-pill); background: var(--c, var(--accent)); box-shadow: 0 0 calc(8px * var(--glow)) color-mix(in srgb, var(--c, var(--accent)) 45%, transparent); transform-origin: left; animation: sc-grow-x var(--dur-value) var(--ease-standard) .2s backwards; transition: width var(--dur-spring) var(--ease-spring); } /* a new --p moves the bar; width, not scaleX, keeps the pill ends round */
 .sc-meter--mini { display: inline-block; vertical-align: middle; width: 76px; height: 10px; padding: 2px; margin-right: 10px; }
 .sc-meter--mini > i { box-shadow: none; }
 
@@ -323,35 +359,38 @@
 .sc-spark .s1 { stop-color: var(--spark-c, var(--accent)); stop-opacity: 0; }
 .sc-spark__dot { position: absolute; right: -4px; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--spark-c, var(--accent)); box-shadow: 0 0 0 2px var(--surface), 0 0 calc(8px * var(--glow)) var(--spark-c, var(--accent)); animation: sc-fade .3s ease calc(var(--dur-value) + .1s) backwards; }
 .sc-spark--warn { --spark-c: var(--warn); } .sc-spark--crit { --spark-c: var(--crit); }
-.sc-chart { height: 150px; padding: 12px 14px 12px 50px; border-radius: var(--radius-md); }
+.sc-chart { height: 150px; padding: 12px 14px 12px 3.125rem; border-radius: var(--radius-md); }
 .sc-chart__plot { position: relative; height: 100%; }
 .sc-chart .ln { fill: none; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
 .sc-chart .ln.focus { stroke-width: 2.6; }
-.sc-chart__y { position: absolute; left: -44px; width: 34px; transform: translateY(-50%); text-align: right; font: 500 10.5px var(--font-data); color: var(--text-3); }
-.sc-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-.sc-legend button { display: inline-flex; align-items: center; gap: var(--space-2); padding: 4px 0; background: none; border: 0; cursor: pointer; font: 500 12.5px var(--font-data); color: var(--text-3); }
+.sc-chart__y { position: absolute; left: -2.75rem; width: 2.125rem; transform: translateY(-50%); text-align: right; font: 500 .65625rem var(--font-data); color: var(--text-3); }
+.sc-legend { display: flex; flex-wrap: wrap; gap: .25rem 1.125rem; }
+.sc-legend button { display: inline-flex; align-items: center; gap: var(--space-2); padding: .25rem 0; background: none; border: 0; cursor: pointer; font: 500 .78125rem var(--font-data); color: var(--text-3); transition: color .15s; }
+.sc-legend button:active { color: var(--text-1); transition-duration: var(--dur-press-in); }
 .sc-legend button[aria-pressed="true"] { color: var(--text-1); }
-.sc-legend i { width: 14px; height: 3px; border-radius: 2px; background: var(--c); }
+.sc-legend i { width: 14px; height: 3px; border-radius: 2px; background: var(--c); transition: transform var(--dur-press) var(--ease-standard); }
+.sc-legend button:active i { transform: scaleY(1.7); transition-duration: var(--dur-press-in); } /* the swatch thickens, like the focused line */
 .sc-legend b { font-weight: 500; color: var(--text-2); }
 
 /* ---------- KPI tile ---------- */
-.sc-kpi { display: grid; gap: 10px; align-content: start; min-width: 0; padding: calc(var(--pad-panel) - 4px); border-radius: var(--radius-lg); transition: box-shadow var(--dur-ui) var(--ease-standard), transform var(--dur-ui) var(--ease-standard); }
+.sc-kpi { display: grid; gap: .625rem; align-content: start; min-width: 0; padding: calc(var(--pad-panel) - .25rem); border-radius: var(--radius-lg); transition: box-shadow var(--dur-ui) var(--ease-standard), transform var(--dur-spring) var(--ease-spring); }
 .sc-kpi--link { cursor: pointer; }
 .sc-kpi--link:hover { box-shadow: var(--raised-3); transform: translateY(-1px); }
+.sc-kpi--link:active { box-shadow: var(--raised-1); transform: none; transition: box-shadow var(--dur-press-in) var(--ease-standard), transform var(--dur-press-in) var(--ease-standard); } /* pressed, it settles below its resting height */
 .sc-kpi__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.sc-kpi__value { font: 500 30px/1.1 var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.sc-kpi__value small { margin-left: 3px; font-size: 15px; letter-spacing: 0; color: var(--text-2); }
-.sc-delta { font: 600 12px var(--font-data); }
+.sc-kpi__value { font: 500 1.875rem/1.1 var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.sc-kpi__value small { margin-left: .1875rem; font-size: .9375rem; letter-spacing: 0; color: var(--text-2); }
+.sc-delta { font: 600 .75rem var(--font-data); }
 .sc-delta--ok { color: var(--ok); } .sc-delta--warn { color: var(--warn); } .sc-delta--crit { color: var(--crit); }
 
 /* ---------- alert list ---------- */
 .sc-alerts { display: grid; margin: 0; padding: 0; list-style: none; }
 .sc-alerts > li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); padding: var(--row-py) 0; border-top: 1px solid var(--rule); }
-.sc-alerts > li:first-child { border-top: 0; padding-top: 2px; }
-.sc-alerts b { display: block; font-weight: 600; font-size: 14px; }
-.sc-alerts__sub { font-size: 12.5px; color: var(--text-3); }
-.sc-alerts time { font: 500 12px var(--font-data); color: var(--text-3); }
-.sc-sev { display: inline-flex; align-items: center; gap: 7px; min-width: 74px; height: 26px; padding: 0 10px; border-radius: var(--radius-pill); font: 600 10.5px/1 var(--font-data); letter-spacing: .08em; color: var(--c); box-shadow: var(--btn-press); }
+.sc-alerts > li:first-child { border-top: 0; padding-top: .125rem; }
+.sc-alerts b { display: block; font-weight: 600; font-size: .875rem; }
+.sc-alerts__sub { font-size: .78125rem; color: var(--text-3); }
+.sc-alerts time { font: 500 .75rem var(--font-data); color: var(--text-3); }
+.sc-sev { display: inline-flex; align-items: center; gap: .4375rem; min-width: 4.625rem; height: 1.625rem; padding: 0 .625rem; border-radius: var(--radius-pill); font: 600 .65625rem/1 var(--font-data); letter-spacing: .08em; color: var(--c); box-shadow: var(--btn-press); }
 .sc-sev--ok { --c: var(--ok); } .sc-sev--warn { --c: var(--warn); } .sc-sev--crit { --c: var(--crit); } .sc-sev--info { --c: var(--info); }
 
 /* ---------- list row: flat, rule-separated rows that each open something ---------- */
@@ -360,13 +399,14 @@
 .sc-list__row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-3); width: 100%; padding: var(--row-py) var(--space-2); background: none; border: 0; border-radius: var(--radius-md); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color .15s; }
 .sc-list__row--plain { grid-template-columns: minmax(0, 1fr) auto auto; }
 .sc-list__row:hover { background: var(--surface-down); }
+.sc-list__row:active { background: var(--well); transition-duration: var(--dur-press-in); }
 .sc-list__row:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 2px; }
-.sc-list__lead { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-md); color: var(--text-2); }
+.sc-list__lead { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md); color: var(--text-2); }
 .sc-list__body { min-width: 0; }
-.sc-list__body b { display: block; overflow: hidden; font-weight: 600; font-size: 14px; white-space: nowrap; text-overflow: ellipsis; }
-.sc-list__body span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--text-3); }
-.sc-list__row > .sc-ic { width: 16px; height: 16px; color: var(--text-3); }
-.sc-list__empty { padding: var(--row-py) 0; color: var(--text-3); font-size: 13px; }
+.sc-list__body b { display: block; overflow: hidden; font-weight: 600; font-size: .875rem; white-space: nowrap; text-overflow: ellipsis; }
+.sc-list__body span { display: block; margin-top: .1875rem; font-size: .78125rem; color: var(--text-3); }
+.sc-list__row > .sc-ic { width: 1rem; height: 1rem; color: var(--text-3); }
+.sc-list__empty { padding: var(--row-py) 0; color: var(--text-3); font-size: .8125rem; }
 
 /* ---------- data table ---------- */
 .sc-table-wrap { max-width: 100%; overflow-x: auto; }
@@ -380,54 +420,80 @@
 .sc-table-wrap::-webkit-scrollbar-track, .sc-select__list::-webkit-scrollbar-track, .sc-code::-webkit-scrollbar-track { background: transparent; }
 .sc-table-wrap::-webkit-scrollbar-thumb, .sc-select__list::-webkit-scrollbar-thumb, .sc-code::-webkit-scrollbar-thumb { background: var(--fill-muted); border: 2px solid var(--surface); border-radius: var(--radius-pill); }
 .sc-table-wrap::-webkit-scrollbar-thumb:hover, .sc-select__list::-webkit-scrollbar-thumb:hover, .sc-code::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
-.sc-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
-.sc-table th { padding: 0 14px 12px; text-align: left; font: 600 11px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
-.sc-table td { padding: var(--row-py) 14px; border-top: 1px solid var(--rule); vertical-align: middle; }
+/* edge fades: where a scroll area has more content out of sight, that edge fades out over --sc-fade. --sc-fs and --sc-fe are the
+   start and end fade lengths, 0 when nothing is hidden on that side. The mask exists only while the area scrolls, so a table or
+   code block that fits renders exactly as without it. Scroll-driven animations set the lengths and the mask in CSS alone (below);
+   without them SoftConsole.init toggles .has-fade-start and .has-fade-end on scroll. The table fades sideways. The code block and
+   the select list fade up and down, and their mask leaves the border and the outer shadow whole: layer 1 is solid and reaches past
+   the box (no-clip), layer 2 cuts the fade inside the padding box out of it. */
+@property --sc-fs { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --sc-fe { syntax: "<length>"; inherits: false; initial-value: 0px; }
+.sc-table-wrap, .sc-code, .sc-select__list { --sc-fade: 1.5rem; }
+.sc-table-wrap { --sc-mask: linear-gradient(90deg, transparent, #000 var(--sc-fs), #000 calc(100% - var(--sc-fe)), transparent); }
+.sc-code, .sc-select__list { --sc-mask: linear-gradient(#000 0 0), linear-gradient(#000, transparent var(--sc-fs), transparent calc(100% - var(--sc-fe)), #000); mask-size: 300% 300%, 100% 100%; mask-position: 50% 50%, 0 0; mask-repeat: no-repeat; mask-origin: border-box, padding-box; mask-clip: no-clip, padding-box; mask-composite: subtract, add; }
+.has-fade-start { --sc-fs: var(--sc-fade); } .has-fade-end { --sc-fe: var(--sc-fade); }
+.has-fade-start, .has-fade-end { mask-image: var(--sc-mask); }
+@keyframes sc-fade-mask { from, to { mask-image: var(--sc-mask); } }
+@keyframes sc-fade-start { to { --sc-fs: var(--sc-fade); } }
+@keyframes sc-fade-end { from { --sc-fe: var(--sc-fade); } to { --sc-fe: 0px; } }
+@supports (animation-timeline: scroll()) {
+  .sc-table-wrap, .sc-code, .sc-select__list { animation: sc-fade-mask linear both, sc-fade-start linear both, sc-fade-end linear both; animation-range: normal, 0px var(--sc-fade), calc(100% - var(--sc-fade)) 100%; }
+  .sc-table-wrap { animation-timeline: scroll(self x), scroll(self x), scroll(self x); }
+  .sc-code, .sc-select__list { animation-timeline: scroll(self y), scroll(self y), scroll(self y); }
+}
+.sc-table { width: 100%; min-width: 35rem; border-collapse: collapse; font-size: .875rem; }
+.sc-table th { padding: 0 .875rem .75rem; text-align: left; font: 600 .6875rem/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+.sc-table td { padding: var(--row-py) .875rem; border-top: 1px solid var(--rule); vertical-align: middle; }
 .sc-table tbody tr { transition: background-color .15s; }
 .sc-table tbody tr:hover { background: var(--surface-down); }
 .sc-table .num { text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sc-table .key { font-family: var(--font-data); font-weight: 500; white-space: nowrap; }
-.sc-status { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+.sc-status { display: inline-flex; align-items: center; gap: .5625rem; white-space: nowrap; }
 
 /* ---------- disclosure: a row that opens more detail ---------- */
 .sc-disclosure { border-top: 1px solid var(--rule); }
-.sc-disclosure > summary { display: flex; align-items: center; gap: var(--space-2); padding: var(--row-py) 0; list-style: none; cursor: pointer; font: 600 14px/1.4 var(--font-ui); color: var(--text-2); }
+.sc-disclosure > summary { display: flex; align-items: center; gap: var(--space-2); padding: var(--row-py) 0; list-style: none; cursor: pointer; font: 600 .875rem/1.4 var(--font-ui); color: var(--text-2); transition: color .15s; }
 .sc-disclosure > summary::-webkit-details-marker { display: none; }
-.sc-disclosure > summary:hover { color: var(--text-1); }
+.sc-disclosure > summary:hover, .sc-disclosure > summary:active { color: var(--text-1); }
 .sc-disclosure > summary:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 2px; border-radius: var(--radius-sm); }
-.sc-disclosure > summary .sc-ic { width: 16px; height: 16px; color: var(--text-3); transform: rotate(-90deg); transition: transform var(--dur-ui) var(--ease-standard); }
-.sc-disclosure[open] > summary .sc-ic { transform: none; color: var(--accent-text); }
-.sc-disclosure__body { display: grid; gap: var(--space-3); padding: 0 0 var(--space-4) 24px; }
+.sc-disclosure > summary .sc-ic { width: 1rem; height: 1rem; color: var(--text-3); transform: rotate(calc(-90deg + var(--nudge, 0deg))); transition: transform var(--dur-spring) var(--ease-spring); }
+.sc-disclosure[open] > summary .sc-ic { transform: rotate(var(--nudge, 0deg)); color: var(--accent-text); }
+/* pressed, the chevron turns a third of the way toward the state the click will bring */
+.sc-disclosure > summary:active { --nudge: 30deg; }
+.sc-disclosure[open] > summary:active { --nudge: -30deg; }
+.sc-disclosure > summary:active .sc-ic { transition: transform var(--dur-press-in) var(--ease-standard); }
+.sc-disclosure__body { display: grid; gap: var(--space-3); padding: 0 0 var(--space-4) 1.5rem; }
 
 /* ---------- readouts: engraved label on the panel, value in a recessed window ----------
    Like a field or a display bezel: the label sits on the surface, the reading sits in the well. */
-.sc-readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-4); margin: 0; }
+.sc-readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); gap: var(--space-4); margin: 0; }
 .sc-readout { display: grid; grid-template-rows: auto 1fr; gap: var(--space-2); min-width: 0; margin: 0; }
-.sc-readout dd { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); min-height: calc(var(--ctl-h) - 4px); margin: 0; padding: 6px 12px; border-radius: var(--radius-md); font: 500 15px/1.35 var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-1); text-align: right; overflow-wrap: anywhere; }
-.sc-readout dd small { font-size: 12px; color: var(--text-3); }
-.sc-readout--text dd { justify-content: flex-start; text-align: left; font: 500 13.5px/1.4 var(--font-ui); }
+.sc-readout dd { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); min-height: calc(var(--ctl-h) - .25rem); margin: 0; padding: .375rem .75rem; border-radius: var(--radius-md); font: 500 .9375rem/1.35 var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-1); text-align: right; overflow-wrap: anywhere; }
+.sc-readout dd small { font-size: .75rem; color: var(--text-3); }
+.sc-readout--text dd { justify-content: flex-start; text-align: left; font: 500 .84375rem/1.4 var(--font-ui); }
 
 /* ---------- code block, quote and inline code ---------- */
-.sc-code { margin: 0; padding: 12px 14px; max-height: 420px; overflow: auto; border-radius: var(--radius-md); font: 400 12.5px/1.6 var(--font-data); color: var(--text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
-.sc-quote { margin: 0; padding: 4px 0 4px 14px; border-left: 2px solid var(--fill-muted); color: var(--text-1); white-space: pre-wrap; }
-:where(.sc-root) code { font: 500 12.5px var(--font-data); color: var(--text-2); }
+.sc-code { margin: 0; padding: .75rem .875rem; max-height: 26.25rem; overflow: auto; border-radius: var(--radius-md); font: 400 .78125rem/1.6 var(--font-data); color: var(--text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sc-quote { margin: 0; padding: .25rem 0 .25rem .875rem; border-left: 2px solid var(--fill-muted); color: var(--text-1); white-space: pre-wrap; }
+:where(.sc-root) code { font: 500 .78125rem var(--font-data); color: var(--text-2); }
 
 /* ---------- media frame: a picture or video set into the panel in a recessed window ----------
    --ar sets the aspect ratio (16 / 9 by default). The picture covers the window; a lightbox shows it whole. */
 .sc-frame { position: relative; display: block; margin: 0; overflow: hidden; aspect-ratio: var(--ar, 16 / 9); border-radius: var(--radius-lg); background: var(--well); }
 .sc-frame > img, .sc-frame > video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .sc-frame::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; border: 1px solid; border-color: var(--edge-lo) var(--edge-hi) var(--edge-hi) var(--edge-lo); box-shadow: var(--inset-1); }
-button.sc-frame { width: 100%; padding: 0; border: 0; cursor: zoom-in; }
+button.sc-frame { width: 100%; padding: 0; border: 0; cursor: zoom-in; transition: transform var(--dur-press) var(--ease-standard); }
+button.sc-frame:active { transform: scale(.985); transition-duration: var(--dur-press-in); }
 button.sc-frame:focus-visible { outline: 2px solid var(--accent-mark); outline-offset: 3px; }
 
 /* ---------- media player: one compact row. Play, seek (a bar, or a waveform for audio) with a thin handle,
    time, then any extra keys. SoftConsole.player() wires it to an <audio> or <video>. ---------- */
 .sc-player { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
-.sc-player > .sc-btn { width: 36px; height: 36px; padding: 0; flex: none; border-radius: 50%; }
-.sc-player > .sc-btn--ghost { width: 32px; height: 32px; }
+.sc-player > .sc-btn { width: 2.25rem; height: 2.25rem; padding: 0; flex: none; border-radius: 50%; }
+.sc-player > .sc-btn--ghost { width: 2rem; height: 2rem; }
 .sc-player > .sc-btn::after { left: calc(50% - 5px); right: calc(50% - 5px); bottom: 3px; }
 .sc-player > [data-sc-play]:not([aria-pressed="true"]) .sc-ic { translate: 1px 0; } /* optical center of the play triangle */
-.sc-time { font: 500 13px/1 var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-1); white-space: nowrap; }
+.sc-time { font: 500 .8125rem/1 var(--font-data); font-variant-numeric: tabular-nums; color: var(--text-1); white-space: nowrap; }
 .sc-time span { color: var(--text-3); }
 .sc-seek { -webkit-appearance: none; appearance: none; flex: 1; min-width: 80px; height: 24px; margin: 0; background: transparent; cursor: pointer; --pct: 0%; }
 .sc-seek::-webkit-slider-runnable-track { height: 6px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent-2), var(--accent)) 0 0 / var(--pct) 100% no-repeat, var(--well); box-shadow: inset 1px 1px 2px var(--shade-lo), inset -1px -1px 1px var(--shade-hi); }
@@ -450,26 +516,108 @@ button.sc-frame:focus-visible { outline: 2px solid var(--accent-mark); outline-o
    The panel takes all the screen it can: the full width, or the height left after its own chrome (--lb-chrome),
    whichever is smaller at the media's aspect ratio (--ar-n, a number, set on the panel). ---------- */
 .sc-lightbox, .sc-lightbox.sc-raised-3 { box-shadow: var(--float); }
-.sc-lightbox { display: grid; gap: var(--space-3); width: min(100%, calc((100vh - var(--lb-chrome)) * var(--ar-n, 1.7778) + 24px)); padding: 10px 12px 12px; border-radius: var(--radius-xl); --lb-chrome: 100px; animation: sc-rise var(--dur-ui) var(--ease-standard); }
+.sc-lightbox { display: grid; gap: var(--space-3); width: min(100%, calc((100vh - var(--lb-chrome)) * var(--ar-n, 1.7778) + 1.5rem)); padding: .625rem .75rem .75rem; border-radius: var(--radius-xl); --lb-chrome: 6.25rem; }
 .sc-lightbox:focus-visible { outline: none; }
-.sc-lightbox--player { --lb-chrome: 150px; }
-.sc-lightbox__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding-left: 4px; }
-.sc-lightbox__title { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 0; font: 600 14px/1.3 var(--font-ui); white-space: nowrap; }
-.sc-lightbox__title span { overflow: hidden; text-overflow: ellipsis; font: 500 12px/1 var(--font-data); color: var(--text-3); }
-.sc-lightbox__head > .sc-btn { width: 32px; height: 32px; padding: 0; flex: none; border-radius: 50%; }
+.sc-lightbox--player { --lb-chrome: 9.375rem; }
+.sc-lightbox__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding-left: .25rem; }
+.sc-lightbox__title { display: flex; align-items: baseline; gap: .625rem; min-width: 0; margin: 0; font: 600 .875rem/1.3 var(--font-ui); white-space: nowrap; }
+.sc-lightbox__title span { overflow: hidden; text-overflow: ellipsis; font: 500 .75rem/1 var(--font-data); color: var(--text-3); }
+.sc-lightbox__head > .sc-btn { width: 2rem; height: 2rem; padding: 0; flex: none; border-radius: 50%; }
 .sc-lightbox .sc-frame > img, .sc-lightbox .sc-frame > video { object-fit: contain; }
 
 /* ---------- motion ---------- */
 @keyframes sc-enter { from { opacity: .3; transform: translateY(10px); } }
-@keyframes sc-sweep { from { stroke-dashoffset: 1; } }
 @keyframes sc-reveal { from { clip-path: inset(0 100% 0 0); } }
 @keyframes sc-grow-x { from { transform: scaleX(0); } }
 @keyframes sc-fade { from { opacity: 0; } }
 @keyframes sc-rise { from { opacity: 0; transform: translateY(10px); } }
 @keyframes sc-seg-light { from { background: var(--seg-ghost); box-shadow: none; } }
 .sc-enter { animation: sc-enter var(--dur-enter) var(--ease-standard) backwards; }
+/* reduced motion: movement goes (slides, scales, rotations, sweeps, reveals, grows, rises); short fades and color changes stay.
+   Values and panels appear in place; overlays fade in over dur-fade. */
 @media (prefers-reduced-motion: reduce) {
-  [class^="sc-"], [class*=" sc-"], [class^="sc-"]::before, [class*=" sc-"]::before, [class^="sc-"]::after, [class*=" sc-"]::after,
-  .sc-gauge .val, .sc-spark svg, .sc-chart svg, .sc-segbars__col i,
-  .sc-root *, .sc-root *::before, .sc-root *::after { transition-duration: 0s !important; animation: none !important; }
+  .sc-btn > *, .sc-disclosure > summary .sc-ic { transition: none; }
+  .sc-btn:active > * { transform: none; }
+  .sc-range:active::-webkit-slider-thumb, .sc-range:active::-moz-range-thumb, button.sc-frame:active, .sc-legend button:active i { transform: none; }
+  .sc-disclosure > summary:active, .sc-disclosure[open] > summary:active { --nudge: 0deg; }
+  .sc-btn::after, .sc-segmented > button::after, .sc-togglegroup > button::after, .sc-nav-item::after { transform: none; opacity: 0; transition: opacity var(--dur-fade) var(--ease-standard); }
+  .sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-togglegroup > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { opacity: 1; }
+  .sc-switch::after, .sc-switch:active::after, .sc-switch.is-drag::after { transition: --sc-ring var(--dur-fade) var(--ease-standard); }
+  .sc-switch:active, .sc-switch.is-drag { --sc-stretch: 0px; }
+  .sc-check::after { transition: opacity var(--dur-fade) var(--ease-standard); }
+  .sc-select__chev { transition: color var(--dur-ui); }
+  .sc-select__list { transform: none; transition: opacity var(--dur-fade) var(--ease-standard); }
+  .sc-scrim.is-fx { transition-duration: var(--dur-fade); }
+  .sc-scrim.is-fx .sc-dialog, .sc-scrim.is-fx .sc-lightbox { transform: none; transition: none; }
+  .sc-meter > i { transition: none; }
+  .sc-tip__bubble { transform: none; transition: opacity var(--dur-fade) var(--ease-standard); }
+  .sc-kpi { transition: box-shadow var(--dur-ui) var(--ease-standard); }
+  .sc-kpi--link:hover { transform: none; }
+  .sc-toast { animation: sc-fade var(--dur-fade) var(--ease-standard); }
+  .sc-toast.is-fx { transform: none; transition: opacity var(--dur-fade) var(--ease-standard); }
+  .sc-enter, .sc-spark svg, .sc-chart svg, .sc-spark__dot, .sc-meter > i, .sc-segbars__col i.on, .sc-led--blink { animation: none; }
+}
+
+/* ---------- accessibility preferences ---------- */
+/* reduced transparency: the scrim stops blurring the page behind it and covers it almost solid */
+@media (prefers-reduced-transparency: reduce) {
+  .sc-scrim { background: color-mix(in srgb, var(--slot) 94%, transparent); backdrop-filter: none; }
+}
+
+/* more contrast: tokens.css already strengthens edges, rules and text. Pressed, selected and on states also stop relying on
+   shadow alone: a solid accent-mark border (the 1px border plus a 1px inset ring) and an underline in accent-mark. */
+@media (prefers-contrast: more) {
+  .sc-btn[aria-pressed="true"], .sc-segmented > button[aria-pressed="true"], .sc-togglegroup > button[aria-pressed="true"], .sc-nav-item[aria-current="page"], .sc-select__option[aria-selected="true"], .sc-switch[aria-checked="true"]:not([data-lean="off"]), .sc-switch[data-lean="on"], .sc-check:checked { border-color: var(--accent-mark); box-shadow: var(--btn-press), inset 0 0 0 1px var(--accent-mark); }
+  .sc-switch[aria-checked="true"]:not([data-lean="off"]), .sc-switch[data-lean="on"], .sc-check:checked { box-shadow: var(--inset-1), inset 0 0 0 1px var(--accent-mark); }
+  .sc-btn:not(.sc-btn--danger)::after, .sc-segmented > button::after, .sc-togglegroup > button::after, .sc-nav-item::after { border-top-color: var(--accent-mark); }
+  .sc-select__option.is-active, .sc-btn--ghost { border-color: var(--edge-lo); }
+}
+
+/* forced colors (Windows High Contrast): shadows and gradients are gone and the system picks the colors, so shape comes from
+   borders and state from system colors. Raised controls keep a ButtonBorder border; pressed, selected, current and on states
+   fill with Highlight; focus outlines are Highlight. Only intrinsically colored displays (segment glass, LEDs, chart series)
+   keep their own colors, and the edge fades are off. */
+@media (forced-colors: active) {
+  :where([class^="sc-"], [class*=" sc-"]):focus-visible, .sc-field:focus-within, .sc-textarea:focus-within, .sc-file:focus-within, .sc-list__row:focus-visible, .sc-disclosure > summary:focus-visible, button.sc-frame:focus-visible, .sc-seek:focus-visible, .sc-wave:focus-within, .sc-segbars__graph:focus-visible { outline-color: Highlight; }
+  .sc-table-wrap, .sc-code, .sc-select__list { mask-image: none; animation: none; }
+  .has-fade-start, .has-fade-end { mask-image: none; }
+  .sc-raised-1, .sc-raised-2, .sc-raised-3, .sc-pressed, .sc-inset-1, .sc-inset-2, .sc-btn, .sc-select__list, .sc-tip__bubble, .sc-avatar, .sc-gauge__hub, .sc-jog { border-color: ButtonBorder; }
+  .sc-btn--primary { border: 2px solid Highlight; }
+  .sc-btn:disabled { color: GrayText; border-color: GrayText; }
+  .sc-btn--ghost { border-color: transparent; }
+  /* pressed, selected, current and on */
+  .sc-btn[aria-pressed="true"], .sc-segmented > button[aria-pressed="true"], .sc-togglegroup > button[aria-pressed="true"], .sc-nav-item[aria-current="page"], .sc-select__option[aria-selected="true"], .sc-btn:active, .sc-segmented > button:active:not(:disabled), .sc-togglegroup > button:active:not(:disabled), .sc-nav-item:active { background: Highlight; color: HighlightText; border-color: HighlightText; box-shadow: none; forced-color-adjust: none; } /* none: the system would otherwise lay a text backplate over the fill */
+  .sc-btn[aria-pressed="true"]::after, .sc-segmented > button[aria-pressed="true"]::after, .sc-togglegroup > button[aria-pressed="true"]::after, .sc-nav-item[aria-current="page"]::after { border-top-color: HighlightText; }
+  .sc-select__option.is-active { outline: 1px solid Highlight; outline-offset: -1px; }
+  .sc-select__option[aria-selected="true"]::after { border-color: HighlightText; }
+  .sc-legend button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; }
+  .sc-disclosure[open] > summary { font-weight: 700; }
+  /* switch: a solid knob; on is a Highlight track with an inverted knob */
+  .sc-switch::after { background: ButtonText; }
+  .sc-switch[aria-checked="true"]:not([data-lean="off"]), .sc-switch[data-lean="on"] { background: Highlight; border-color: Highlight; box-shadow: none; forced-color-adjust: none; }
+  .sc-switch[aria-checked="true"]:not([data-lean="off"])::after, .sc-switch[data-lean="on"]::after { background: HighlightText; }
+  /* checkbox and radio */
+  .sc-check:checked { background: Highlight; border-color: Highlight; box-shadow: none; forced-color-adjust: none; }
+  .sc-check:checked::after { border-color: HighlightText; }
+  .sc-check[type="radio"]::after { box-shadow: none; background: HighlightText; border: 0; }
+  /* slider and seek: Highlight fill and thumb on a bordered track. none keeps these gradients, which the system would drop. */
+  .sc-range, .sc-seek, .sc-jog__ridges { forced-color-adjust: none; }
+  .sc-range::-webkit-slider-runnable-track, .sc-seek::-webkit-slider-runnable-track { box-shadow: none; border: 1px solid ButtonBorder; background: linear-gradient(Highlight, Highlight) 0 0 / var(--pct) 100% no-repeat, Canvas; }
+  .sc-range::-webkit-slider-thumb { box-shadow: none; background: Highlight; border: 2px solid ButtonText; }
+  .sc-seek::-webkit-slider-thumb { box-shadow: none; background: ButtonText; }
+  .sc-range::-moz-range-track, .sc-seek::-moz-range-track { box-shadow: none; border: 1px solid ButtonBorder; background: Canvas; }
+  .sc-range::-moz-range-progress, .sc-seek::-moz-range-progress { background: Highlight; }
+  .sc-range::-moz-range-thumb { box-shadow: none; background: Highlight; border: 2px solid ButtonText; }
+  .sc-seek::-moz-range-thumb { box-shadow: none; background: ButtonText; }
+  .sc-wave__bars i { background: GrayText; } .sc-wave__bars i.on { background: Highlight; } .sc-wave__head { background: ButtonText; }
+  /* meters, gauge and charts: Highlight marks on a bordered track */
+  .sc-meter > i { background: Highlight; box-shadow: none; }
+  .sc-gauge .trk { stroke: GrayText; } .sc-gauge .val { stroke: Highlight; filter: none; } .sc-gauge .tk, .sc-gauge .tk.mj, .sc-gauge .tk.lit { stroke: CanvasText; }
+  .sc-spark .sl { stroke: Highlight; } .sc-spark .gl, .sc-chart .gl { stroke: GrayText; }
+  .sc-chart svg, .sc-legend i { forced-color-adjust: none; } /* series colors are the data */
+  .sc-led, .sc-display__glass { forced-color-adjust: none; } /* lit lamps and display glass keep their colors */
+  .sc-led--off { background: Canvas; box-shadow: none; outline: 1px solid GrayText; }
+  .sc-display__glass { outline: 1px solid ButtonBorder; }
+  .sc-jog.is-grab { border-color: Highlight; }
+  .sc-jog__ridges { background-image: repeating-linear-gradient(90deg, GrayText 0 1.5px, transparent 1.5px 8px); }
 }

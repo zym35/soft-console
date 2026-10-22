@@ -23,6 +23,7 @@ Set a palette with `data-theme` on `<html>`: `graphite-teal` (default) or `carbo
 
 - [Guidelines](docs/guidelines.md): principles, color, type, motion and copy
 - [Components](docs/components): markup and usage for all 38 components
+- [Motion lab](https://zym35.github.io/soft-console/examples/motion.html): every moving part on one page, with a ten-times slow-motion switch
 
 ## License
 

@@ -18,6 +18,8 @@ Buttons are raised controls that press into the surface when clicked and stay pr
 ```
 Wrap the label in a `<span>` so it can travel with the press. Height follows density (`ctl-h`).
 
+The press lands in `dur-press-in` (90ms) on pointer down, label scale included, and releases over `dur-press` (220ms). Under reduced motion the label stays still and the shadow carries the press.
+
 ## Do and don't
 - Do label with a verb that says what happens: Deploy, Restart, Pause.
 - Do confirm every danger action in a Dialog before it runs.

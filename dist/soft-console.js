@@ -17,13 +17,14 @@
     document.documentElement.setAttribute('data-theme', id);
     return id;
   }
-  /* dark is the default; auto follows the OS in CSS alone. Switching crossfades where View Transitions exist. */
+  /* dark is the default; auto follows the OS in CSS alone. Switching crossfades where View Transitions exist,
+   reduced motion included: the crossfade is opacity only, and it spares an abrupt dark/light jump. */
   function setMode(mode) {
     if (MODES.indexOf(mode) < 0) throw new Error('Unknown Soft Console mode "' + mode + '". Use one of: ' + MODES.join(', '));
     var html = document.documentElement;
     if (html.getAttribute('data-mode') === mode) return mode;
     var apply = function () { html.setAttribute('data-mode', mode); };
-    if (document.startViewTransition && !reduced()) document.startViewTransition(apply);
+    if (document.startViewTransition) document.startViewTransition(apply);
     else apply();
     return mode;
   }
@@ -34,22 +35,74 @@
     return mode;
   }
 
-  /* ---------- tween for value motion ---------- */
-  function tween(from, to, dur, onFrame) {
-    if (reduced() || !window.requestAnimationFrame) { onFrame(to); return; }
-    var t0 = performance.now();
-    var step = function (now) {
-      var p = Math.min(1, (now - t0) / dur);
-      onFrame(from + (to - from) * (1 - Math.pow(1 - p, 3)));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
+  /* ---------- spring: motion that starts where the value is and keeps its velocity ----------
+     A critically damped spring (damping ratio 1: no overshoot), set by `response` in seconds, the period of the undamped spring.
+     SPRING_UI matches --ease-spring in tokens.css; SPRING_VALUE is slower, so gauges and counts still read like hardware.
+     spring(from, response, eps, onFrame) -> { value, velocity, target, eps, to(target, velocity), snap(value) }
+     to() re-targets: the current value and velocity carry on. A velocity passed to a spring that is at rest sets its
+     starting speed, which is how a flick hands its release speed to the spring. One rAF loop steps every moving spring.
+     Under reduced motion to() jumps to the target. The step is analytic, so it is exact at any frame time.
+     SoftConsole.timeScale (default 1) slows every spring by that factor, for reviewing motion: set it to 10 and they run ten times slower. */
+  var timeScale = function () { var t = window.SoftConsole && +window.SoftConsole.timeScale; return t > 0 ? t : 1; };
+  var SPRING_UI = 0.4, SPRING_VALUE = 0.6;
+  var moving = [], loopId = 0, afters = [], stepping = false;
+  function afterFrame(fn) { // run fn once at the end of this frame's step (or now, outside the loop)
+    if (!stepping) { fn(); return; }
+    if (afters.indexOf(fn) < 0) afters.push(fn);
   }
+  function loop() {
+    loopId = 0;
+    var now = performance.now(), batch = moving;
+    moving = [];
+    stepping = true;
+    batch.forEach(function (s) { if (s.step(now)) moving.push(s); });
+    stepping = false;
+    var queued = afters;
+    afters = [];
+    queued.forEach(function (fn) { fn(); });
+    if (moving.length && !loopId) loopId = requestAnimationFrame(loop);
+  }
+  function spring(from, response, eps, onFrame) {
+    var w = 2 * Math.PI / response, last = 0, on = false;
+    var s = { value: from, velocity: 0, target: from, eps: eps };
+    s.snap = function (v) { s.value = s.target = v; s.velocity = 0; on = false; onFrame(v); };
+    s.to = function (t, v0) {
+      if (reduced() || !window.requestAnimationFrame) { s.snap(t); return; }
+      s.target = t;
+      if (on) return;
+      if (v0) s.velocity = v0;
+      on = true;
+      last = performance.now();
+      moving.push(s);
+      if (!loopId && !stepping) loopId = requestAnimationFrame(loop);
+    };
+    s.step = function (now) {
+      var dt = Math.max(0, (now - last) / 1000) / timeScale(), x0 = s.value - s.target, v0 = s.velocity, k = v0 + w * x0, e = Math.exp(-w * dt);
+      last = now;
+      s.value = s.target + (x0 + k * dt) * e;
+      s.velocity = (v0 - w * k * dt) * e;
+      if (Math.abs(s.value - s.target) < s.eps && Math.abs(s.velocity) < s.eps * 10) { s.value = s.target; s.velocity = 0; on = false; }
+      var live = on;
+      onFrame(s.value);
+      return live;
+    };
+    return s;
+  }
+  /* gesture maths. project: where a release at speed v (px/s) comes to rest with a deceleration rate d per ms (Apple's
+     scroll formula). rubberband: the distance a drag moves past a limit, resisted, never more than dimension (px). */
+  var project = function (v, d) { return (v / 1000) * d / (1 - d); };
+  var rubberband = function (over, dim, c) { return (over * dim * c) / (dim + c * Math.abs(over)); };
+  var fmtNum = function (v, dec) { return v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }); };
+  /* countUp(el, to, dec): the first call counts from 0. A later call on the same element carries on from the number on screen. */
   function countUp(el, to, decimals) {
-    var dec = decimals || 0;
-    tween(0, to, 900, function (v) {
-      el.textContent = v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    });
+    var st = el.scCount;
+    if (!st) {
+      st = el.scCount = { dec: 0 };
+      st.spring = spring(0, SPRING_VALUE, 0.01, function (v) { el.textContent = fmtNum(v, st.dec); });
+    }
+    st.dec = decimals || 0;
+    st.spring.eps = 0.2 * Math.pow(10, -st.dec);
+    st.spring.to(to);
   }
 
   /* ---------- seven-segment display ---------- */
@@ -85,7 +138,7 @@
        format(v) -> { text, unit }  text uses seven-segment characters (0-9 . -); unit sits beside it
        labels, names                 short x labels and full names (readout and accessible label)
        levels (10), digits (5), max (nice max of values), maxLabels (8), label, totalLabel, stateLabel
-     Pointer or keyboard (arrows, Home, End, Escape) moves a cursor that drives the readout. */
+     Pointer (hover, or press and drag, for touch too) or keyboard (arrows, Home, End, Escape) moves a cursor that drives the readout. */
   function niceMax(v) {
     if (!(v > 0)) return 1;
     var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)), n = v / p;
@@ -133,8 +186,29 @@
       segment(part('digits'), f.text, digits);
       if (i >= 0) { colsEl.children[i].classList.add('is-cursor'); xEl.children[i].classList.add('is-cursor'); }
     }
-    colsEl.addEventListener('pointerover', function (e) { var col = e.target.closest('.sc-segbars__col'); if (col) show(+col.dataset.i); });
-    colsEl.addEventListener('pointerleave', function () { if (document.activeElement !== graph) show(-1); });
+    colsEl.addEventListener('pointerover', function (e) { var col = !scrub && e.target.closest('.sc-segbars__col'); if (col) show(+col.dataset.i); });
+    colsEl.addEventListener('pointerleave', function () { if (!scrub && document.activeElement !== graph) show(-1); });
+    /* press and drag scrubs: the pointer is captured, so the column comes from its x, not from the event target */
+    var scrub = null;
+    var at = function (x) {
+      var best = 0, gap = Infinity;
+      scrub.mids.forEach(function (m, i) { if (Math.abs(x - m) < gap) { gap = Math.abs(x - m); best = i; } });
+      return best;
+    };
+    colsEl.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      scrub = { id: e.pointerId, mids: Array.prototype.map.call(colsEl.children, function (c) { var r = c.getBoundingClientRect(); return r.left + r.width / 2; }) };
+      colsEl.setPointerCapture(e.pointerId);
+      show(at(e.clientX));
+    });
+    colsEl.addEventListener('pointermove', function (e) { if (scrub && e.pointerId === scrub.id) { var i = at(e.clientX); if (i !== cursor) show(i); } });
+    var release = function (e) {
+      if (!scrub || e.pointerId !== scrub.id) return;
+      scrub = null;
+      if (e.pointerType !== 'mouse' && document.activeElement !== graph) show(-1); // a finger that lifts leaves nothing to hover; a mouse is still over the column
+    };
+    colsEl.addEventListener('pointerup', release);
+    colsEl.addEventListener('pointercancel', release);
     graph.addEventListener('keydown', function (e) {
       var step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
       if (e.key === 'Home') { e.preventDefault(); show(0); }
@@ -147,14 +221,19 @@
     return glass;
   }
 
-  /* ---------- dial gauge ---------- */
+  /* ---------- dial gauge ----------
+     gauge(el, value, opts): draws once; the first draw sweeps up from min on a spring. Call it again on the same element
+     (or el.scGauge.set(value)) and the arc, lit ticks and hub number move from where they are on screen, keeping their
+     velocity, with no rebuild. A changed range, unit, label or decimals rebuilds instead. el.scGauge = { set(value), value }. */
   function gauge(el, value, opts) {
-    var o = opts || {};
+    var prev = el.scGauge ? el.scGauge.opts : {}, o = {};
+    ['min', 'max', 'unit', 'label', 'decimals'].forEach(function (k) { o[k] = opts && opts[k] != null ? opts[k] : prev[k]; });
     var min = o.min == null ? 0 : o.min, max = o.max == null ? 100 : o.max;
-    var unit = o.unit == null ? '%' : o.unit, label = o.label || '';
+    var unit = o.unit == null ? '%' : o.unit, label = o.label || '', dec = o.decimals || 0;
     if (!(max > min)) throw new Error('SoftConsole.gauge: max must be greater than min');
+    var key = [min, max, unit, label, dec].join('|');
+    if (el.scGauge && el.scGauge.key === key && el.contains(el.scGauge.hub)) { el.scGauge.set(value); return el; }
     var C = 130, R = 72, START = 135, SWEEP = 270, N = 50, id = 'sc-glow-' + (uid++);
-    var frac = Math.max(0, Math.min(1, (value - min) / (max - min)));
     var pt = function (deg, r) { var a = deg * Math.PI / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
     var arc = function (from, to, r) {
       var p1 = pt(from, r), p2 = pt(to, r);
@@ -163,7 +242,7 @@
     var ticks = '', labels = '', i;
     for (i = 0; i <= N; i++) {
       var a = START + SWEEP * i / N, major = i % 10 === 0, p1 = pt(a, major ? 96 : 100), p2 = pt(a, 107);
-      ticks += '<line class="tk' + (major ? ' mj' : '') + (i / N <= frac ? ' lit' : '') + '" x1="' + p1[0].toFixed(2) + '" y1="' + p1[1].toFixed(2) + '" x2="' + p2[0].toFixed(2) + '" y2="' + p2[1].toFixed(2) + '"/>';
+      ticks += '<line class="tk' + (major ? ' mj' : '') + '" x1="' + p1[0].toFixed(2) + '" y1="' + p1[1].toFixed(2) + '" x2="' + p2[0].toFixed(2) + '" y2="' + p2[1].toFixed(2) + '"/>';
     }
     for (i = 0; i <= 5; i++) {
       var lp = pt(START + SWEEP * i / 5, 86), lv = min + (max - min) * i / 5;
@@ -174,9 +253,27 @@
       + '<svg viewBox="0 0 260 260" aria-hidden="true"><defs><filter id="' + id + '" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
       + ticks + labels
       + '<path class="trk" d="' + arc(START, START + SWEEP, R) + '"/>'
-      + '<path class="val" pathLength="1" d="' + arc(START, START + SWEEP * frac, R) + '" filter="url(#' + id + ')"/></svg>'
-      + '<div class="sc-gauge__hub sc-raised-2" role="img" aria-label="' + label + ': ' + value + ' ' + unit + '"><b><span>' + value + '</span><small>' + unit + '</small></b><span>' + label + '</span></div>';
-    countUp(el.querySelector('.sc-gauge__hub b > span'), value, o.decimals || 0);
+      + '<path class="val" pathLength="1" d="' + arc(START, START + SWEEP, R) + '" filter="url(#' + id + ')"/></svg>'
+      + '<div class="sc-gauge__hub sc-raised-2" role="img"><b><span></span><small>' + unit + '</small></b><span>' + label + '</span></div>';
+    var tickEls = $$('.tk', el), val = el.querySelector('.val'), hub = el.querySelector('.sc-gauge__hub'), num = el.querySelector('.sc-gauge__hub b > span');
+    /* the arc is the full sweep, trimmed by its dash offset; ticks up to the fraction light; the hub shows the number */
+    var draw = function (v) {
+      var f = Math.max(0, Math.min(1, (v - min) / (max - min)));
+      val.setAttribute('stroke-dashoffset', (1 - f).toFixed(4));
+      tickEls.forEach(function (t, k) { t.classList.toggle('lit', k / N <= f); });
+      num.textContent = fmtNum(v, dec);
+    };
+    var sp = spring(min, SPRING_VALUE, Math.min((max - min) * 1e-4, 0.2 * Math.pow(10, -dec)), draw);
+    var api = el.scGauge = {
+      opts: { min: min, max: max, unit: unit, label: label, decimals: dec }, key: key, hub: hub,
+      set: function (v) {
+        hub.setAttribute('aria-label', label + ': ' + v + ' ' + unit);
+        sp.to(v);
+      },
+      get value() { return sp.target; },
+    };
+    draw(min);
+    api.set(value);
     return el;
   }
 
@@ -200,48 +297,117 @@
   /* ---------- multi-series line chart ---------- */
   var CATEGORICAL = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)'];
   var MUTES = ['var(--mute-1)', 'var(--mute-2)', 'var(--mute-3)'];
+  /* lines(el, legendEl, series, opts) draws the chart once. Call it again on the same element with the same number of
+     series and points (new data) and the lines morph from where they are on a spring, the legend values update in place,
+     and the reveal does not replay. Options you leave out keep their last value; focus and mode keep the legend's
+     current choice unless you pass them. el.scLines holds the live state. */
   function lines(el, legendEl, series, opts) {
-    var o = opts || {};
-    var mode = o.mode || 'peers', max = o.max == null ? 100 : o.max, suffix = o.suffix == null ? '%' : o.suffix, fmt = o.format;
+    var o = opts || {}, st = el.scLines;
     if (series.length > 4) throw new Error('SoftConsole.lines: four series at most. Group or facet the rest.');
-    var focus = o.focus == null ? (mode === 'focus' ? 0 : -1) : o.focus;
-    var draw = function () {
-      var colors = series.map(function (s, i) {
-        if (mode === 'peers') return CATEGORICAL[i];
-        return i === focus ? 'var(--accent)' : MUTES[(i > focus ? i - 1 : i) % MUTES.length];
-      });
-      var W = 320, H = 120, n = series[0].data.length;
-      var x = function (i) { return i * W / (n - 1); };
-      var y = function (v) { return H * (1 - v / max); };
-      var order = series.map(function (s, i) { return i; }).sort(function (a, b) { return (a === focus) - (b === focus); });
+    var n = series[0].data.length;
+    var inPlace = !!(st && st.svg && el.contains(st.svg) && st.paths.length === series.length && st.n === n);
+    var keep = function (k, def) { return o[k] != null ? o[k] : (inPlace && st[k] != null ? st[k] : def); };
+    var mode = keep('mode', 'peers'), max = keep('max', 100), suffix = keep('suffix', '%'), fmt = o.format || (inPlace ? st.fmt : undefined), label = keep('label', 'Line chart');
+    var focus = o.focus != null ? o.focus : (inPlace && mode === st.mode ? st.focus : (mode === 'focus' ? 0 : -1));
+    var W = 320, H = 120;
+    var x = function (i) { return i * W / (n - 1); };
+    var y = function (v) { return H * (1 - v / max); };
+    var pathOf = function (data) { return data.map(function (v, k) { return (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' '); };
+    var legendText = function (s) { return fmt ? fmt(s.data[n - 1]) : s.data[n - 1].toFixed(0) + suffix; };
+    var yText = function (v) { return fmt ? fmt(v) : +v.toFixed(1) + suffix; };
+    if (!inPlace) {
+      /* first draw: build the plot and legend once, so the reveal plays once */
       var grid = [0.25, 0.5, 0.75].map(function (f) { return '<line class="gl" x1="0" x2="' + W + '" y1="' + H * f + '" y2="' + H * f + '" vector-effect="non-scaling-stroke"/>'; }).join('');
-      var paths = order.map(function (i) {
-        var d = series[i].data.map(function (v, k) { return (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
-        return '<path class="ln' + (i === focus ? ' focus' : '') + '" style="stroke:' + colors[i] + '" vector-effect="non-scaling-stroke" d="' + d + '"/>';
-      }).join('');
-      var ylab = [max, max / 2, 0].map(function (v, k) { return '<span class="sc-chart__y" style="top:' + k * 50 + '%">' + (fmt ? fmt(v) : +v.toFixed(1) + suffix) + '</span>'; }).join('');
-      el.innerHTML = '<div class="sc-chart__plot"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + (o.label || 'Line chart') + '">' + grid + paths + '</svg>' + ylab + '</div>';
+      var strokes = series.map(function (s) { return '<path class="ln" vector-effect="non-scaling-stroke" d="' + pathOf(s.data) + '"/>'; }).join('');
+      var ylab = [max, max / 2, 0].map(function (v, k) { return '<span class="sc-chart__y" style="top:' + k * 50 + '%">' + yText(v) + '</span>'; }).join('');
+      el.innerHTML = '<div class="sc-chart__plot"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img">' + grid + strokes + '</svg>' + ylab + '</div>';
+      if (st) st.dead = true; // a rebuild retires the old chart's springs
+      st = { svg: el.querySelector('svg'), n: n, sp: null, dead: false, quiet: false };
+      st.paths = $$('path.ln', st.svg);
+      st.ylabs = $$('.sc-chart__y', el);
+      st.shown = series.map(function (s) { return s.data.slice(); });
+      el.scLines = st;
       if (legendEl) {
-        legendEl.innerHTML = series.map(function (s, i) {
-          return '<button type="button" data-i="' + i + '" aria-pressed="' + (i === focus) + '" style="--c:' + colors[i] + '"><i></i>' + s.name + ' <b>' + (fmt ? fmt(s.data[n - 1]) : s.data[n - 1].toFixed(0) + suffix) + '</b></button>';
-        }).join('');
+        legendEl.innerHTML = series.map(function (s, i) { return '<button type="button" data-i="' + i + '"><i></i>' + s.name + ' <b>' + legendText(s) + '</b></button>'; }).join('');
+      }
+    } else {
+      st.ylabs.forEach(function (e, k) { e.textContent = yText(k === 0 ? max : k === 1 ? max / 2 : 0); });
+      if (legendEl) {
+        $$('button', legendEl).forEach(function (b, i) {
+          b.childNodes[1].textContent = series[i].name + ' ';
+          b.querySelector('b').textContent = legendText(series[i]);
+        });
+      }
+    }
+    st.svg.setAttribute('aria-label', label);
+    st.mode = mode; st.max = max; st.suffix = suffix; st.fmt = fmt; st.label = label; st.focus = focus; st.series = series; st.legendEl = legendEl;
+    /* data: each point is its own spring, so a new set arriving mid-morph carries the velocity of every point */
+    var paint = function () { st.paths.forEach(function (p, i) { p.setAttribute('d', pathOf(st.shown[i])); }); };
+    st.paint = paint;
+    if (inPlace) {
+      if (reduced() || !window.requestAnimationFrame) {
+        st.quiet = true;
+        if (st.sp) series.forEach(function (s, i) { s.data.forEach(function (v, k) { st.sp[i][k].snap(v); }); });
+        else st.shown = series.map(function (s) { return s.data.slice(); });
+        st.quiet = false;
+        paint();
+      } else {
+        if (!st.sp) {
+          st.sp = st.shown.map(function (row, i) {
+            return row.map(function (v, k) { return spring(v, SPRING_VALUE, max * 5e-4, function (nv) { if (st.dead) return; st.shown[i][k] = nv; if (!st.quiet) afterFrame(st.paint); }); });
+          });
+        }
+        series.forEach(function (s, i) { s.data.forEach(function (v, k) { st.sp[i][k].to(v); }); });
+      }
+    }
+    /* every draw: restack the lines (focus on top) and restyle them and the legend in place */
+    st.draw = function () {
+      var order = st.series.map(function (s, i) { return i; }).sort(function (a, b) { return (a === st.focus) - (b === st.focus); });
+      order.forEach(function (i) {
+        st.paths[i].setAttribute('class', 'ln' + (i === st.focus ? ' focus' : ''));
+        st.paths[i].style.stroke = colorOf(st.mode, st.focus, i);
+        st.svg.appendChild(st.paths[i]);
+      });
+      if (st.legendEl) {
+        $$('button', st.legendEl).forEach(function (b, i) {
+          b.setAttribute('aria-pressed', String(i === st.focus));
+          b.style.setProperty('--c', colorOf(st.mode, st.focus, i));
+        });
       }
     };
-    if (legendEl && !legendEl.dataset.scBound) {
-      legendEl.dataset.scBound = '1';
-      legendEl.addEventListener('click', function (e) {
-        var b = e.target.closest('button');
-        if (!b) return;
-        var i = +b.dataset.i;
-        focus = mode === 'focus' ? i : (focus === i ? -1 : i);
-        draw();
-      });
+    if (legendEl) {
+      legendEl.scLines = st; // one handler per legend, reading the live state, so a later call never leaves a stale closure bound
+      if (!legendEl.dataset.scBound) {
+        legendEl.dataset.scBound = '1';
+        legendEl.addEventListener('click', function (e) {
+          var b = e.target.closest('button'), live = legendEl.scLines;
+          if (!b || !live) return;
+          var i = +b.dataset.i;
+          live.focus = live.mode === 'focus' ? i : (live.focus === i ? -1 : i);
+          live.draw();
+        });
+      }
     }
-    draw();
+    st.draw();
     return el;
   }
+  var colorOf = function (mode, focus, i) {
+    if (mode === 'peers') return CATEGORICAL[i];
+    return i === focus ? 'var(--accent)' : MUTES[(i > focus ? i - 1 : i) % MUTES.length];
+  };
 
-  /* ---------- jog wheel ---------- */
+  /* ---------- jog wheel ----------
+     Dragging tracks the pointer 1:1 from where it was grabbed. Past min or max the ridges stretch against a rubber band
+     while the value stays at the limit. Letting go with speed throws the wheel: the release speed over the last 100 ms is
+     projected to a resting step and a spring carries the ridges there, so the value counts through each step on the way.
+     Grabbing it again stops it where it is. Keys, the wheel and set() move the value at once and the ridges follow on the spring.
+     Under reduced motion nothing coasts or stretches: the ridges follow the pointer and settle on the step in place. */
+  var RIDGE = 8;          // px period of the ridge pattern (.sc-jog__ridges)
+  var JOG_WINDOW = 100;   // ms of pointer history that sets the release speed
+  var JOG_FLICK = 200;    // px/s below which a release is not a flick
+  var JOG_DECEL = 0.99;   // deceleration per ms for project(): snappy, for a stepped control
+  var JOG_BAND = 0.55;    // rubber band stiffness
+  var JOG_WHEEL = 40;     // wheel px that make one step; a 100px mouse notch is two steps
   function jog(el, opts) {
     var o = opts || {};
     var min = o.min == null ? 0 : o.min, max = o.max == null ? 100 : o.max, value = o.value == null ? min : o.value;
@@ -253,39 +419,128 @@
     el.tabIndex = 0;
     el.setAttribute('aria-valuemin', min);
     el.setAttribute('aria-valuemax', max);
-    var rot = 0, drag = null;
-    var set = function (v, spin) {
-      var next = Math.max(min, Math.min(max, Math.round(v)));
-      rot += spin || 0;
-      ridges.style.backgroundPosition = rot + 'px 0';
+    var clamp = function (v) { return Math.max(min, Math.min(max, v)); };
+    value = clamp(value);
+    /* pos is where the ridges are, in steps: it leaves [min, max] only while stretched. value is the committed step. */
+    var pos = value, follow = false, anim = false, drag = null, wheelAcc = 0, wheelAt = 0;
+    var paint = function () { ridges.style.backgroundPosition = (((pos * pxPerStep) % RIDGE) + RIDGE) % RIDGE + 'px 0'; };
+    var commit = function (next) {
+      if (next === value) return;
+      value = next;
       if (display) segment(display, String(next), digits);
       el.setAttribute('aria-valuenow', next);
       if (o.valueText) el.setAttribute('aria-valuetext', o.valueText(next));
-      if (next !== value) { value = next; el.dispatchEvent(new CustomEvent('sc-change', { detail: { value: value }, bubbles: true })); }
+      el.dispatchEvent(new CustomEvent('sc-change', { detail: { value: value }, bubbles: true }));
     };
-    el.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, v: value }; el.setPointerCapture(e.pointerId); el.classList.add('is-grab'); });
-    el.addEventListener('pointermove', function (e) { if (drag) set(drag.v + (e.clientX - drag.x) / pxPerStep, e.movementX || 0); });
-    var end = function () { drag = null; el.classList.remove('is-grab'); };
+    var sp = spring(pos, SPRING_UI, 0.004, function (p) {
+      if (!anim) return; // a spring that was stopped by a grab may still deliver one stale frame
+      pos = p;
+      paint();
+      if (follow) commit(clamp(Math.round(p)));
+    });
+    var animateTo = function (target, v0) {
+      if (!anim) { sp.value = pos; sp.velocity = 0; }
+      anim = true;
+      sp.to(target, v0);
+    };
+    /* a drag past a limit moves the ridges by the rubber-banded overshoot; unresist is its inverse, for grabbing mid-stretch */
+    var dim = function () { return el.clientWidth || 200; };
+    var resist = function (raw) {
+      if (raw > max) return max + rubberband((raw - max) * pxPerStep, dim(), JOG_BAND) / pxPerStep;
+      if (raw < min) return min - rubberband((min - raw) * pxPerStep, dim(), JOG_BAND) / pxPerStep;
+      return raw;
+    };
+    var unresist = function (p) {
+      var over = p > max ? p - max : p < min ? min - p : 0;
+      if (!over) return p;
+      var d = dim(), r = Math.min(over * pxPerStep, d - 1), raw = r * d / (JOG_BAND * (d - r)) / pxPerStep;
+      return p > max ? max + raw : min - raw;
+    };
+    var goto = function (v) {
+      follow = false;
+      commit(clamp(Math.round(v)));
+      animateTo(value);
+    };
+    var speed = function (pts, at) { // px/s over the last JOG_WINDOW ms, 0 if the pointer had stopped before release
+      var a = pts[0], b = pts[pts.length - 1];
+      if (pts.length < 2 || at - b.t > 80 || b.t - a.t < 8) return 0;
+      return (b.x - a.x) / (b.t - a.t) * 1000;
+    };
+    el.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      anim = false; // grabbing stops any coasting where it is
+      sp.snap(pos);
+      if (!follow) { pos = value; paint(); }
+      follow = true;
+      drag = { id: e.pointerId, x: e.clientX, base: unresist(pos), pts: [{ x: e.clientX, t: e.timeStamp }] };
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('is-grab');
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var raw = drag.base + (e.clientX - drag.x) / pxPerStep;
+      pos = reduced() ? clamp(raw) : resist(raw);
+      paint();
+      commit(clamp(Math.round(pos)));
+      drag.pts.push({ x: e.clientX, t: e.timeStamp });
+      while (drag.pts.length > 1 && e.timeStamp - drag.pts[0].t > JOG_WINDOW) drag.pts.shift();
+    });
+    var end = function (e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var v = e.type === 'pointerup' && !reduced() ? speed(drag.pts, e.timeStamp) : 0;
+      drag = null;
+      el.classList.remove('is-grab');
+      var flick = Math.abs(v) >= JOG_FLICK;
+      var v0 = flick ? v / pxPerStep : 0; // steps/s
+      if ((pos > max && v0 > 0) || (pos < min && v0 < 0)) v0 = 0; // already stretched: spring back from where it is
+      follow = true;
+      animateTo(clamp(Math.round(pos + (flick ? project(v, JOG_DECEL) / pxPerStep : 0))), v0);
+    };
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
     el.addEventListener('wheel', function (e) {
       e.preventDefault();
-      var d = Math.sign(Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY);
-      set(value + d, d * 6);
+      if (drag) return;
+      var unit = e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? 320 : 1; // lines and pages to px
+      var d = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY) * unit;
+      if (e.timeStamp - wheelAt > 250 || d * wheelAcc < 0) wheelAcc = 0; // a pause or a turn around starts over
+      wheelAt = e.timeStamp;
+      wheelAcc += d;
+      var n = (wheelAcc / JOG_WHEEL) | 0;
+      if (!n) return;
+      wheelAcc -= n * JOG_WHEEL;
+      goto(value + n);
     }, { passive: false });
     el.addEventListener('keydown', function (e) {
       var map = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 5, PageDown: -5 };
-      if (e.key === 'Home') { e.preventDefault(); set(min, -20); return; }
-      if (e.key === 'End') { e.preventDefault(); set(max, 20); return; }
+      if (e.key === 'Home') { e.preventDefault(); goto(min); return; }
+      if (e.key === 'End') { e.preventDefault(); goto(max); return; }
       if (map[e.key] === undefined) return;
       e.preventDefault();
-      set(value + map[e.key], map[e.key] * 6);
+      goto(value + map[e.key]);
     });
-    value = Math.max(min, Math.min(max, value));
     if (display) segment(display, String(value), digits);
     el.setAttribute('aria-valuenow', value);
     if (o.valueText) el.setAttribute('aria-valuetext', o.valueText(value));
-    return { get value() { return value; }, set: function (v) { set(v, (v - value) * 6); } };
+    paint();
+    return { get value() { return value; }, set: function (v) { goto(v); } };
+  }
+
+  /* ---------- scroll edge fades: where CSS scroll-driven animations exist (soft-console.css) they fade the edges alone;
+     elsewhere a scroll listener marks the edges that have content out of sight. Returns its measure function, or null. ---------- */
+  var SCROLL_FADE = !(window.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()'));
+  function edgeFade(el, vertical) {
+    if (!SCROLL_FADE) return null;
+    if (el.scEdgeFade) return el.scEdgeFade;
+    var measure = function () {
+      var at = vertical ? el.scrollTop : el.scrollLeft, room = vertical ? el.scrollHeight - el.clientHeight : el.scrollWidth - el.clientWidth;
+      el.classList.toggle('has-fade-start', at > 1);
+      el.classList.toggle('has-fade-end', room - at > 1);
+    };
+    el.addEventListener('scroll', measure, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(el); else window.addEventListener('resize', measure);
+    measure();
+    return (el.scEdgeFade = measure);
   }
 
   /* ---------- select: a styled listbox over a native <select> ---------- */
@@ -319,6 +574,7 @@
     list.hidden = true;
     field.insertBefore(trigger, native);
     field.appendChild(list);
+    var fade = edgeFade(list, true);
 
     var opts = [], active = -1, typed = '', typedAt = 0;
     function add(o) {
@@ -368,23 +624,39 @@
       return from;
     }
     function outside(e) { if (!field.contains(e.target)) close(); }
+    /* is-open is the open state: the list pops out of the field on a transition, and closing reverses it from
+       wherever it is. The list stays unhidden until the way back has finished (is-up stays too, so it sinks toward the field). */
+    var opened = function () { return field.classList.contains('is-open'); }, hideTimer = 0;
+    function settle() {
+      clearTimeout(hideTimer);
+      if (opened()) return;
+      list.hidden = true;
+      field.classList.remove('is-up');
+    }
+    list.addEventListener('transitionend', function (e) { if (e.target === list && e.propertyName === 'opacity') settle(); });
     function open() {
-      if (trigger.disabled || !list.hidden) return;
-      list.hidden = false;
+      if (trigger.disabled || opened()) return;
+      clearTimeout(hideTimer);
+      if (list.hidden) {
+        list.hidden = false;
+        if (fade) fade();
+        var rect = field.getBoundingClientRect(), below = window.innerHeight - rect.bottom, cap = parseFloat(getComputedStyle(list).maxHeight) || 280; // max-height is in rem
+        field.classList.toggle('is-up', below < Math.min(list.scrollHeight, cap) + 12 && rect.top > below);
+        void list.offsetWidth; // the closed state must be on screen once, so the pop has somewhere to start
+      }
       field.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
-      var rect = field.getBoundingClientRect(), below = window.innerHeight - rect.bottom;
-      field.classList.toggle('is-up', below < Math.min(list.scrollHeight, 280) + 12 && rect.top > below);
       setActive(native.selectedIndex >= 0 ? native.selectedIndex : move(-1, 1));
       document.addEventListener('pointerdown', outside, true);
     }
     function close() {
-      if (list.hidden) return;
-      list.hidden = true;
-      field.classList.remove('is-open', 'is-up');
+      if (!opened()) return;
+      field.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
       setActive(-1);
       document.removeEventListener('pointerdown', outside, true);
+      if (fadeIdle(list)) settle();
+      else hideTimer = setTimeout(settle, 400 * timeScale()); // transitionend normally hides it; this is the net
     }
     function choose(i) {
       if (!opts[i] || opts[i].opt.disabled) return;
@@ -409,9 +681,9 @@
       }
     }
 
-    trigger.addEventListener('click', function () { if (list.hidden) open(); else close(); });
+    trigger.addEventListener('click', function () { if (opened()) close(); else open(); });
     trigger.addEventListener('keydown', function (e) {
-      var isOpen = !list.hidden;
+      var isOpen = field.classList.contains('is-open');
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         if (!isOpen) open(); else setActive(move(active, e.key === 'ArrowDown' ? 1 : -1));
@@ -444,7 +716,7 @@
 
     build();
     sync();
-    native.scSelect = { open: open, close: close, refresh: function () { build(); sync(); } };
+    native.scSelect = { open: open, close: close, refresh: function () { build(); sync(); if (fade) fade(); } };
     return native.scSelect;
   }
 
@@ -540,8 +812,14 @@
     return row.scPlayer;
   }
 
+  /* true when no opacity transition is running on el: nothing will fire transitionend, so a closed overlay can hide at once */
+  var fadeIdle = function (el) { return !!el.getAnimations && !el.getAnimations().some(function (a) { return a.transitionProperty === 'opacity'; }); };
+
   /* ---------- dialog: modal over a scrim. Traps focus, closes on Escape, a scrim click or
-     [data-sc-close], and returns focus to the opener. ---------- */
+     [data-sc-close], and returns focus to the opener. It opens and closes on transitions (class is-open on the scrim):
+     the box rises and the scrim fades in; closing sinks the box back and fades the scrim, and the scrim is hidden once
+     that has finished. Open or close mid-way and it reverses from where it is. sc-close fires when closing starts.
+     A lightbox opened from a button.sc-frame grows out of the thumbnail instead (View Transitions), and shrinks back into it. ---------- */
   var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   function dialog(scrim) {
     if (!scrim || !scrim.classList.contains('sc-scrim')) throw new Error('SoftConsole.dialog needs a .sc-scrim element');
@@ -560,24 +838,177 @@
       else if (e.shiftKey && (at === first || !box.contains(at) || at === box)) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && (at === last || !box.contains(at))) { e.preventDefault(); first.focus(); }
     }
+    var opened = !scrim.hidden, hideTimer = 0, vtSeq = 0, VT = 'sc-lightbox';
+    var lbFrame = box.classList.contains('sc-lightbox') ? box.querySelector('.sc-frame') : null;
+    scrim.classList.add('is-fx');
+    if (opened) scrim.classList.add('is-open');
+    /* the thumbnail media a lightbox can grow out of: only from a button.sc-frame, only where View Transitions exist, never under reduced motion */
+    function thumbOf(from) {
+      if (!document.startViewTransition || reduced() || !lbFrame || !from || from.tagName !== 'BUTTON' || !from.classList.contains('sc-frame')) return null;
+      return from.querySelector('img, video');
+    }
+    function morph(thumb, enter) {
+      var seq = ++vtSeq;
+      var done = function () { // only the newest transition cleans up, so an interrupted one never strips a later one's names
+        if (seq !== vtSeq) return;
+        thumb.style.viewTransitionName = '';
+        lbFrame.style.viewTransitionName = '';
+        scrim.classList.remove('is-vt');
+      };
+      scrim.classList.add('is-vt'); // the view transition does the fading; the CSS transitions step aside
+      if (enter) thumb.style.viewTransitionName = VT; else lbFrame.style.viewTransitionName = VT;
+      document.startViewTransition(function () {
+        thumb.style.viewTransitionName = '';
+        lbFrame.style.viewTransitionName = '';
+        if (enter) {
+          if (!opened) return;
+          lbFrame.style.viewTransitionName = VT;
+          scrim.hidden = false;
+          scrim.classList.add('is-open');
+          focusIn();
+        } else {
+          if (opened) return; // reopened before the page updated
+          scrim.classList.remove('is-open');
+          scrim.hidden = true;
+          thumb.style.viewTransitionName = VT;
+        }
+      }).finished.then(done, done);
+    }
+    function focusIn() { (box.querySelector('[autofocus]') || focusables()[0] || box).focus(); }
+    function settle() { // after the way back: hide, unless it was opened again meanwhile
+      clearTimeout(hideTimer);
+      if (!opened) scrim.hidden = true;
+    }
+    scrim.addEventListener('transitionend', function (e) { if (e.target === scrim && e.propertyName === 'opacity') settle(); });
     function open(from) {
-      if (!scrim.hidden) return;
+      if (opened) return;
+      opened = true;
       opener = from || document.activeElement;
-      scrim.hidden = false;
+      clearTimeout(hideTimer);
       document.addEventListener('keydown', onKey);
-      (box.querySelector('[autofocus]') || focusables()[0] || box).focus();
+      var thumb = thumbOf(opener);
+      if (thumb && scrim.hidden) { morph(thumb, true); return; }
+      if (scrim.hidden) { scrim.hidden = false; void scrim.offsetWidth; } // let the closed state paint once, so the rise has somewhere to start
+      scrim.classList.add('is-open');
+      focusIn();
     }
     function close() {
-      if (scrim.hidden) return;
+      if (!opened) return;
+      opened = false;
       $$('audio, video', box).forEach(function (m) { m.pause(); }); // a closed lightbox never keeps playing
-      scrim.hidden = true;
       document.removeEventListener('keydown', onKey);
       if (opener && opener.focus) opener.focus();
+      var thumb = scrim.hidden ? null : thumbOf(opener);
+      if (thumb) morph(thumb, false);
+      else {
+        scrim.classList.remove('is-open');
+        if (fadeIdle(scrim)) settle(); // it never got going (closed in the frame it opened): no fade to wait for
+        else hideTimer = setTimeout(settle, 400 * timeScale()); // transitionend normally hides it; this is the net
+      }
       scrim.dispatchEvent(new CustomEvent('sc-close', { bubbles: true }));
     }
     scrim.addEventListener('click', function (e) { if (e.target === scrim || e.target.closest('[data-sc-close]')) close(); });
-    scrim.scDialog = { open: open, close: close, get isOpen() { return !scrim.hidden; } };
+    scrim.scDialog = { open: open, close: close, get isOpen() { return opened; } };
     return scrim.scDialog;
+  }
+
+  /* ---------- toast: a transient confirmation, bottom center ----------
+     toast(message, opts) -> { dismiss() }. One toast at a time: a new call while one shows swaps its content in place and restarts the timer.
+     opts: action { label, onAction } (one ghost button, e.g. Undo: it runs onAction, then dismisses),
+           duration (ms; default 4000, 6000 with an action), led ('ok' default, 'warn', 'crit', 'info', or false for none).
+     The toast is a polite live region. It waits while the pointer is over it or focus is inside it; Escape inside it dismisses.
+     It enters and leaves on transitions (is-open), so dismissing or replacing it mid-motion reverses from where it is. */
+  var TOAST_LEDS = ['ok', 'warn', 'crit', 'info'], toastCur = null;
+  function toastArm(t) { // (re)start the dismiss timer, unless the pointer or focus is on the toast
+    clearTimeout(t.timer);
+    t.running = false;
+    if (t.hover || t.focus || !t.open) return;
+    t.running = true;
+    t.at = performance.now();
+    t.timer = setTimeout(function () { toastClose(t); }, t.left);
+  }
+  function toastHold(t) { // pause, keeping what is left (at least 1.5 s once it resumes)
+    if (!t.running) return;
+    clearTimeout(t.timer);
+    t.running = false;
+    t.left = Math.max(1500, t.left - (performance.now() - t.at));
+  }
+  function toastRemove(t) {
+    if (t.open) return;
+    clearTimeout(t.rm);
+    t.el.remove();
+    if (toastCur === t) toastCur = null;
+  }
+  function toastClose(t) {
+    if (!t.open) { if (!t.shown) { t.seq++; toastRemove(t); } return; } // already leaving, or dismissed before it was ever filled
+    t.seq++;
+    t.open = false;
+    clearTimeout(t.timer);
+    t.running = false;
+    if (t.el.contains(document.activeElement) && t.back && t.back.isConnected) t.back.focus(); // focus goes back to where it came from
+    t.el.classList.remove('is-open');
+    if (fadeIdle(t.el)) toastRemove(t);
+    else t.rm = setTimeout(function () { toastRemove(t); }, 600 * timeScale()); // transitionend normally removes it; this is the net
+  }
+  function toastMake() {
+    var el = document.createElement('div'), t = { el: el, seq: 0, open: false, shown: false, hover: false, focus: false, running: false, left: 0, at: 0, timer: 0, rm: 0, back: null };
+    el.className = 'sc-toast sc-raised-2 is-fx';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('aria-atomic', 'true');
+    el.addEventListener('mouseenter', function () { t.hover = true; toastHold(t); });
+    el.addEventListener('mouseleave', function () { t.hover = false; toastArm(t); });
+    el.addEventListener('focusin', function (e) {
+      if (e.relatedTarget && !el.contains(e.relatedTarget)) t.back = e.relatedTarget;
+      t.focus = true;
+      toastHold(t);
+    });
+    el.addEventListener('focusout', function (e) {
+      if (e.relatedTarget && el.contains(e.relatedTarget)) return;
+      t.focus = false;
+      toastArm(t);
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); toastClose(t); } });
+    el.addEventListener('transitionend', function (e) { if (e.target === el && e.propertyName === 'opacity') toastRemove(t); });
+    document.body.appendChild(el);
+    return t;
+  }
+  function toast(message, opts) {
+    var o = opts || {}, act = o.action && o.action.label ? o.action : null, led = o.led === undefined ? 'ok' : o.led;
+    if (led && TOAST_LEDS.indexOf(led) < 0) throw new Error('Unknown toast led "' + led + '". Use one of: ' + TOAST_LEDS.join(', ') + ', or false for none');
+    var t = toastCur, fresh = !t;
+    if (!t) t = toastCur = toastMake();
+    var seq = ++t.seq;
+    clearTimeout(t.rm);
+    clearTimeout(t.timer);
+    t.running = false;
+    t.left = o.duration > 0 ? o.duration : act ? 6000 : 4000;
+    var fill = function () {
+      if (t.seq !== seq) return; // dismissed or replaced meanwhile
+      var had = t.el.contains(document.activeElement);
+      t.el.innerHTML = (led ? '<span class="sc-led sc-led--' + led + '"></span>' : '') + '<span class="sc-toast__text">' + esc(message) + '</span>';
+      t.el.classList.toggle('sc-toast--action', !!act);
+      var b = null;
+      if (act) {
+        b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sc-btn sc-btn--sm sc-btn--ghost';
+        b.innerHTML = '<span>' + esc(act.label) + '</span>';
+        b.addEventListener('click', function () {
+          if (t.seq !== seq) return;
+          try { if (act.onAction) act.onAction(); } finally { if (t.seq === seq) toastClose(t); } // onAction may show a toast of its own: that one stays
+        });
+        t.el.appendChild(b);
+      }
+      if (had && b) b.focus();
+      else if (had && t.back && t.back.isConnected) t.back.focus();
+      t.open = t.shown = true;
+      t.el.classList.add('is-open');
+      toastArm(t);
+    };
+    if (fresh) setTimeout(fill, 30); // the live region exists empty first, so assistive tech announces what is put into it
+    else fill();
+    return { dismiss: function () { if (t.seq === seq) toastClose(t); } };
   }
 
   /* ---------- icons: outline, 24px grid, 1.8 stroke ---------- */
@@ -622,9 +1053,12 @@
   /* ---------- declarative wiring ---------- */
   var num = function (v, fallback) { var n = parseFloat(v); return isNaN(n) ? fallback : n; };
   var list = function (v) { return String(v || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean); };
+  var touchWired = false;
+  var SWITCH_SLOP = 6, SWITCH_FLICK = 200, SWITCH_PAD = 3, SWITCH_KNOB = 22; // px, px/s, then the knob's inset and width in soft-console.css
   function init(root, opts) {
     var r = root || document, o = opts || {};
     mountIcons();
+    if (!touchWired) { touchWired = true; document.addEventListener('touchstart', function () {}, { passive: true }); } // iOS Safari applies :active only once a touchstart listener exists
     $$('[data-sc-icon]', r).forEach(function (el) { el.innerHTML = icon(el.getAttribute('data-sc-icon')); });
     $$('[data-sc-single]', r).forEach(function (group) {
       if (group.dataset.scBound) return;
@@ -644,7 +1078,50 @@
     $$('.sc-switch', r).forEach(function (t) {
       if (t.dataset.scBound) return;
       t.dataset.scBound = '1';
-      t.addEventListener('click', function () { t.setAttribute('aria-checked', String(t.getAttribute('aria-checked') !== 'true')); });
+      var drag = null, spent = false; // spent: a drag just ended, so the click that follows it must not toggle again
+      t.addEventListener('click', function (e) {
+        if (spent) { spent = false; e.stopImmediatePropagation(); e.preventDefault(); return; }
+        t.setAttribute('aria-checked', String(t.getAttribute('aria-checked') !== 'true'));
+      });
+      /* a press stretches the knob (CSS); moving past SWITCH_SLOP drags it 1:1 along the track, and letting go picks the
+         side: by release speed if it is fast, else by which half the knob is in. A drag ends in one real click, so listeners see one change. */
+      t.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        spent = false;
+        drag = { id: e.pointerId, x: e.clientX, on: t.getAttribute('aria-checked') === 'true', live: false, pts: [{ x: e.clientX, t: e.timeStamp }] };
+      });
+      t.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        if (!drag.live) {
+          if (Math.abs(e.clientX - drag.x) <= SWITCH_SLOP) return;
+          drag.live = true;
+          drag.x = e.clientX; // the knob picks up under the pointer, with no jump
+          t.setPointerCapture(e.pointerId);
+          t.classList.add('is-drag');
+          drag.span = t.clientWidth - 2 * SWITCH_PAD - SWITCH_KNOB - (parseFloat(getComputedStyle(t).getPropertyValue('--sc-stretch')) || 0);
+          drag.from = drag.on ? drag.span : 0;
+        }
+        drag.at = Math.max(0, Math.min(drag.span, drag.from + e.clientX - drag.x));
+        t.style.setProperty('--sc-drag', drag.at + 'px');
+        t.setAttribute('data-lean', drag.at > drag.span / 2 ? 'on' : 'off');
+        drag.pts.push({ x: e.clientX, t: e.timeStamp });
+        while (drag.pts.length > 1 && e.timeStamp - drag.pts[0].t > 100) drag.pts.shift();
+      });
+      var finish = function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var d = drag;
+        drag = null;
+        if (!d.live) return;
+        t.classList.remove('is-drag');
+        t.removeAttribute('data-lean');
+        t.style.removeProperty('--sc-drag');
+        var a = d.pts[0], b = d.pts[d.pts.length - 1], v = d.pts.length > 1 && e.timeStamp - b.t <= 80 && b.t - a.t >= 8 ? (b.x - a.x) / (b.t - a.t) * 1000 : 0;
+        var on = e.type === 'pointercancel' ? d.on : Math.abs(v) >= SWITCH_FLICK ? v > 0 : d.at > d.span / 2;
+        if (on !== d.on) t.click();
+        if (e.type === 'pointerup') { spent = true; setTimeout(function () { spent = false; }, 500); }
+      };
+      t.addEventListener('pointerup', finish);
+      t.addEventListener('pointercancel', finish);
     });
     $$('input.sc-range', r).forEach(function (el) {
       var out = el.id ? r.querySelector('output[for="' + el.id + '"]') : null;
@@ -669,6 +1146,8 @@
       player(row, media);
     });
     $$('.sc-field select', r).forEach(select);
+    $$('.sc-table-wrap', r).forEach(function (el) { edgeFade(el, false); });
+    $$('.sc-code', r).forEach(function (el) { edgeFade(el, true); });
     $$('[data-sc-dialog]', r).forEach(function (b) {
       if (b.dataset.scBound) return;
       b.dataset.scBound = '1';
@@ -698,7 +1177,7 @@
   }
 
   window.SoftConsole = {
-    version: '2.1.0',
+    version: '2.2.0',
     themes: THEMES.slice(),
     modes: MODES.slice(),
     init: init,
@@ -714,6 +1193,8 @@
     jog: jog,
     select: select,
     dialog: dialog,
+    toast: toast,
+    timeScale: 1, // motion multiplier for the spring loop: 1 is normal, 10 is ten times slower (for reviewing motion)
     wave: wave,
     player: player,
     countUp: countUp,

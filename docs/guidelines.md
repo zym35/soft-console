@@ -6,7 +6,7 @@ Soft Console is a neumorphic system for technical dashboards: one soft material,
 2. **Pressed in means on.** Selected tabs, the active nav item, toggled buttons and switched-on settings use `btn-press`, turn `accent-text`, and get the accent underline: 2px, across the item's inner width with an 8–10px inset.
 3. **Recessed means data.** Values, inputs, tracks and charts sit in wells (`inset-1`, `inset-2`), never on bumps.
 4. **Accent means value or the main action.** One primary button per view. Never use `accent` as decoration.
-5. **Every shape has a hairline edge.** `edge-hi` on the lit side and `edge-lo` on the shaded side keep shapes readable on dim screens and give controls a 3:1 boundary. Never remove them.
+5. **Every shape has a hairline edge.** `edge-hi` on the lit side and `edge-lo` on the shaded side keep shapes readable on dim screens. At the default setting they are soft by design, about 1.2:1 to 1.8:1 against `surface`; under `prefers-contrast: more` they turn opaque and every boundary reaches 3:1 (see Accessibility preferences). Never remove them.
 
 ## Color
 
@@ -61,6 +61,27 @@ Contrast measured per palette and mode, on `surface` in dark and on `well` in li
 | `accent-mark` (3:1 needed) | 6.30:1 | 7.68:1 | 3.03:1 | 3.02:1 |
 | `accent-ink` on `accent` | 7.40:1 | 8.24:1 | 5.12:1 | 5.84:1 |
 
+### More contrast
+
+Neumorphism's weak point is the boundary: a shadow is not a 3:1 edge. When the person asks for more contrast (`prefers-contrast: more`), `tokens.css` restates a few color tokens in every palette and mode, `data-mode="auto"` included, and `soft-console.css` adds solid borders to selected states. Measured on `surface` (edges) and on the darker text background of each mode (text):
+
+| Token | Graphite dark | Carbon dark | Graphite light | Carbon light | Need |
+| --- | --- | --- | --- | --- | --- |
+| `edge-hi` | 4.83:1 | 4.82:1 | 3.31:1 | 3.34:1 | 3:1 |
+| `edge-lo` | 3.37:1 | 3.34:1 | 4.82:1 | 4.88:1 | 3:1 |
+| `rule` | 3.15:1 | 3.10:1 | 3.14:1 | 3.12:1 | 3:1 |
+| `text-1` | 12.56:1 | 12.65:1 | 12.60:1 | 12.53:1 | 12.5:1 |
+| `text-2` | 9.03:1 | 9.03:1 | 9.08:1 | 9.01:1 | 9:1 |
+| `text-3` | 7.32:1 | 7.34:1 | 7.26:1 | 7.31:1 | 7:1 |
+| `accent-text` | 8.13:1 | 8.88:1 | 7.26:1 | 7.30:1 | 7:1 |
+| Lowest signal | 7.20:1 (`ok`) | 7.24:1 (`info`) | 7.23:1 (`crit`) | 7.26:1 (`ok`) | 7:1 |
+| `accent-mark` | 6.30:1 | 7.68:1 | 4.64:1 | 4.67:1 | 4.5:1 |
+
+- Edges turn opaque. The lit side stays the lighter of the pair in both modes; in dark the shaded edge cannot be darker than the material by 3:1, so both edges are light lines and the shadows carry the direction.
+- `rule` becomes a visible line, so row separators, disabled borders and the knob's off groove read.
+- Pressed, selected and on states stop relying on the inset shadow alone: a solid `accent-mark` border (1px border plus a 1px inset ring) and the underline in `accent-mark`. This covers toggled buttons, selected segments, the current nav item, the selected select option, the on switch and checked boxes and radios. Ghost buttons get an `edge-lo` border.
+- In light mode the signals deepen to 7:1, so `warn` reads as a dark amber-brown there.
+
 ### Accent
 
 - `accent` fills the primary button (as a gradient from `accent-2`), the live arc of a gauge and slider fills.
@@ -109,28 +130,64 @@ Manrope sets the interface; IBM Plex Mono sets every number. Both load from Goog
 
 ## Spacing and density
 
-- Two densities ship. Comfortable is the default (`ctl-h` 44px, `pad-panel` 22px, `gap` 28px, `row-py` 12px). Compact (`data-density="compact"` or `SoftConsole.setDensity('compact')`) uses the `-compact` tokens for dense tables and ops screens.
+- Two densities ship. Comfortable is the default (`ctl-h` 2.75rem, `pad-panel` 1.375rem, `gap` 1.75rem, `row-py` 0.75rem; 44px, 22px, 28px and 12px at the default 16px text size). Compact (`data-density="compact"` or `SoftConsole.setDensity('compact')`) uses the `-compact` tokens for dense tables and ops screens.
+- Spacing, control heights and type are in `rem`, so they follow the person's text size (the browser's font-size setting, or `html { font-size }`). Lengths that are drawn stay in px: radii, borders, shadows, strokes, hairlines, focus outlines.
 - Use `space-1` to `space-8` for everything else: `space-2` inside chips, `space-3` between related controls, `space-5` between control groups, `space-8` between page sections.
 - Lay sibling groups out with grid or flex `gap`, not margins.
 
 ## States
 
 - **Hover:** buttons lift slightly (`btn-hover`); KPI tiles that open a detail view lift to `raised-3`.
-- **Pressed and selected:** `btn-press`, `accent-text`, and the accent underline under the item.
-- **Focus:** a solid 2px `accent-mark` outline, 3px offset, on every interactive element. Never remove it.
+- **Pressed and selected:** `btn-press`, `accent-text`, and the accent underline under the item. A press answers on pointer down: buttons, segments, toggles, nav items, select options, the slider thumb and the jog wheel press in at once, list rows darken to `well`, linkable KPI tiles settle to `raised-1`, legend swatches thicken, disclosure chevrons turn toward their next state and media-frame buttons shrink a hair. The switch knob stretches toward the side it will travel.
+- **Gripped:** a control you drag (the jog wheel, the switch knob, the segment-bars readout) tracks the pointer 1:1 from where it was grabbed. Never offset it, and never let a drag fight the page: horizontal drags set `touch-action` so vertical scrolling still works.
+- **Focus:** a solid 2px `accent-mark` outline, 3px offset, on every interactive element. Never remove it. In forced colors it is `Highlight`.
 - **Disabled:** flattened into the surface (`btn-flat`), `rule` border, `text-off` text.
+- **Forgiveness:** prefer Undo to asking. A reversible action (archive, move, mute) runs at once and shows a toast with an Undo button (`SoftConsole.toast`); a confirm dialog is for destructive, irreversible actions only.
 - **Modal:** an open dialog keeps focus inside it. Escape and a click on the scrim close it, and focus returns to the control that opened it. `SoftConsole.dialog` does this for you.
 
 ## Motion
 
-Motion is expressive but functional. Durations: `dur-press` for press travel, `dur-ui` for switches, hover and the selection marker, `dur-value` for values moving into place, `dur-enter` for panels rising in on first load. Every transition uses `ease-standard`.
+Motion is expressive but functional, and it can be interrupted: every animation starts from what is on screen now, keeps its velocity when its target changes, and can be reversed at any moment. Durations: `dur-press-in` for pressing in, `dur-press` for release, `dur-ui` for shadows, overlay fades and colors, `dur-spring` for things that move, `dur-value` for values moving into place, `dur-enter` for panels rising in on first load, `dur-fade` for the fades that replace movement under reduced motion.
 
-- Buttons and segments travel in when pressed; the shadow animates, it never jumps.
-- Values move like hardware: gauges sweep, digits count up, meters grow in, segment bars light up, charts reveal left to right.
+Two easings. `ease-standard` carries shadows, colors, fades and the one-shot animations (reveal, grow, enter). `ease-spring` carries the state toggles that move: the switch knob, the selection underline, the select and disclosure chevrons, the KPI hover lift, tooltips, dialogs and the select list. It is a critically damped spring (damping ratio 1, so no overshoot) with a response of 0.4 s, sampled into a CSS `linear()` curve of 37 stops, and `dur-spring` (590ms) is where its error falls under 0.1%. A CSS transition restarts from the value it has reached, so a toggle reversed halfway turns around without a jump. Browsers without `linear()` get `ease-standard` over `dur-ui`.
+
+Scripted values use the same spring in JavaScript, with a response of 0.4 s for interface and 0.6 s for values, so gauges and counts still read like hardware. `SoftConsole.gauge`, `countUp` and `lines` move from the value on screen and carry its velocity into a new target: call them again, or `el.scGauge.set(v)`, at any time, even mid-sweep.
+
+- Buttons and segments travel in when pressed; the shadow animates, it never jumps. Press in fast (`dur-press-in`, 90ms) so the control answers at once, and let go slowly (`dur-press`, 220ms) so the shadow eases back out. Put `dur-press-in` on the `:active` state: the transition of the state being entered sets the pace.
+- Controls set `touch-action: manipulation`, so a tap never waits for a double-tap zoom. Controls dragged sideways take `pan-y` (the switch, the segment bars) or `none` (the jog wheel). `SoftConsole.init` also adds one passive `touchstart` listener to the document, which iOS Safari needs before it applies `:active`.
+- Releasing a drag keeps its speed. The jog wheel projects where its release speed would come to rest (`project(v) = v/1000 · d / (1 − d)`, d = 0.99, snappy for a stepped control), snaps to the nearest step and hands the speed to the spring, so there is no seam between the finger and the coast; a new grab stops it where it is. Past a limit a drag stretches against a rubber band (`rubberband(x) = x·dim·c / (dim + c·x)`, c = 0.55) and springs back on release; the value itself stays inside its range.
+- Values move like hardware: gauges sweep, digits count up, meters grow in, segment bars light up, charts reveal left to right. A reveal plays once, on first draw. After that a value moves from where it is: a gauge set to a new value, a count-up called again, a meter whose `--p` changes, a chart given new data. None of them restart from zero, and none of them replay the reveal. Changing a chart's focus restyles it in place.
+- To review motion, open `examples/motion.html`: every moving part on one page, with a slow toggle (or `?slow`) that makes it ten times slower. It sets `SoftConsole.timeScale = 10` for the springs and multiplies the `dur-*` tokens for CSS. `timeScale` is a documented hook (default 1); use it in your own review pages, never in production.
 - Switching modes with `SoftConsole.setMode` crossfades the page over `dur-ui`.
 - Panels and tiles rise in once on first load (`SoftConsole.init(root, { enter: true })`), staggered by 60ms.
+- Overlays leave the way they came. A dialog or lightbox fades its scrim and rises 10px into place; closing sinks it back down the same path, and `sc-close` fires when closing starts. Close it halfway through opening, or open it halfway through closing, and it reverses from where it is. A toast rises and sinks the same way, and a new one replaces the one showing in place. The select list pops out of its field and returns into it the same way. A lightbox opened from a `button.sc-frame` grows out of that thumbnail with a view transition and shrinks back into it on close.
 - Overlays (tooltips, toasts, dialogs) are centered with the CSS `translate` property and animate only `transform`. Mixing both in `transform` makes an overlay slide sideways as it rises.
-- Under `prefers-reduced-motion`, all of it is switched off and values appear in place.
+- The select list grows out of its field: a 4px slide and a 2% scale anchored to the field's edge, from the top edge when it opens below and from the bottom edge when it opens above (`is-up`).
+
+### Reduced motion
+
+Under `prefers-reduced-motion`, movement goes and change stays.
+
+- Movement goes: slides, scales, rotations and rises (knobs, press scale, switch stretch, selection and chevron turns, hover lift), momentum and rubber banding, and the sweep, reveal, grow, light-up and enter animations. A dragged control still follows the pointer, stops at its limits and settles on its value in place. Values and panels appear in place: counts, gauges, meters and chart updates jump to their value, and the spring takes its target at once.
+- Fades and colors stay, short: dialogs, lightboxes, toasts, tooltips and the select list fade in and out over `dur-fade` (they close by fading, with no rise or sink), a lightbox does not grow out of its thumbnail, the selection underline fades instead of growing, and color, background and shadow changes on press and hover keep their durations.
+- `SoftConsole.setMode` still crossfades over `dur-ui`. The crossfade is opacity only, and it spares a reduced-motion user an abrupt jump between dark and light.
+- LEDs stop blinking.
+
+## Accessibility preferences
+
+The kit answers five preferences from the person's system, with no script:
+
+- **`prefers-color-scheme`:** `data-mode="auto"` follows it (see Modes).
+- **`prefers-reduced-motion`:** movement goes, fades stay (see Motion).
+- **`prefers-contrast: more`:** edges, rules and text strengthen and selected states gain a solid border (see More contrast). The tokens come from `tokens.css`, so a theme only needs the same two files.
+- **`forced-colors: active` (Windows High Contrast):** shadows and gradients disappear and the system chooses the colors, so shape comes from borders and state from system colors. Raised controls keep a `ButtonBorder` border. Toggled buttons, selected segments, the current nav item, the selected select option, the on switch and checked boxes and radios fill with `Highlight` and `HighlightText`, and the primary button gets a 2px `Highlight` border. The switch knob, the slider thumb, meter fills, the gauge arc and waveform bars draw in system colors and stay visible. Only intrinsically colored displays keep their own colors: segment glass, LEDs and chart series (never carry meaning by color alone there; every series is also named in its legend). Focus outlines are `Highlight`, and the scroll edge fades are off.
+- **`prefers-reduced-transparency: reduce`:** the dialog scrim drops its blur and covers the page almost solid.
+
+Text size is a preference too: see Spacing and density. Things drawn in fixed geometry stay in px at any text size: the seven-segment SVG internals, the gauge's SVG internals, the 3px waveform bars, LEDs (8px), the switch (54 by 30px), the slider and seek bars, checkboxes and radios (22px), the meter tracks, sparklines and chart plots, the jog wheel and its ridges.
+
+## Scroll edge fades
+
+A scroll area fades out at an edge that has more content hidden beyond it, so a cut-off row or line reads as scrollable rather than broken. The data table fades sideways; the code block and the select list fade at the top and bottom. A fade is 1.5rem (`--sc-fade`) and appears only while content is hidden on that side: at rest a table that fits shows no fade, and the mask is not even applied, so it renders exactly as before. CSS scroll-driven animations do it alone (`animation-timeline: scroll()`, guarded by `@supports`); in browsers without them `SoftConsole.init` toggles `has-fade-start` and `has-fade-end` on scroll instead. The code block and the list keep their border and outer shadow whole.
 
 ## Content
 

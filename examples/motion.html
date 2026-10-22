@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-theme="graphite-teal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soft Console · Motion lab</title>
+<link rel="stylesheet" href="../dist/tokens.css">
+<link rel="stylesheet" href="../dist/soft-console.css">
+<script src="../dist/soft-console.js"></script>
+<style>
+  .page { max-width: 77.5rem; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem) 5rem; display: grid; gap: var(--space-8); }
+  .top { position: sticky; top: 0; z-index: 5; background: var(--surface); box-shadow: 0 14px 28px -18px var(--shade-lo); }
+  .top .bar { max-width: 77.5rem; margin: 0 auto; padding: .875rem clamp(1rem, 4vw, 2.5rem); display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; }
+  .brand { margin-right: auto; font: 700 1.0625rem/1.2 var(--font-ui); }
+  .brand span { display: block; font: 500 .6875rem/1.4 var(--font-data); color: var(--text-3); }
+  .prefs { display: flex; flex-wrap: wrap; gap: .625rem 1.125rem; align-items: center; }
+  .prefs > div { display: flex; gap: .5rem; align-items: center; }
+  .mode > button { display: inline-grid; place-items: center; padding: 0 .75rem; }
+  .mode .sc-ic { width: 1.125rem; height: 1.125rem; }
+  .intro { display: grid; gap: .75rem; padding-top: 2.5rem; max-width: 70ch; }
+  .intro p { margin: 0; color: var(--text-2); }
+  .intro h1 { margin: 0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--gap); align-items: start; }
+  .card .summary { margin: 0; color: var(--text-2); font-size: .875rem; }
+  .card .sc-root { padding: 1.125rem 1.25rem !important; }
+  .stack { display: grid; gap: .875rem; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+  .slowlbl { font: 600 .8125rem/1 var(--font-ui); color: var(--text-2); }
+  .slowbadge { font: 600 .6875rem/1 var(--font-data); letter-spacing: .08em; color: var(--accent-text); min-width: 5rem; }
+  a { color: var(--accent-text); }
+  .cta { text-decoration: none; }
+  @media (max-width: 760px) { .top { position: static; } .prefs { order: 3; width: 100%; } }
+</style>
+</head>
+<body class="sc-root">
+<header class="top">
+  <div class="bar">
+    <div class="brand">Soft Console<span>v2.2.0 · motion lab</span></div>
+    <div class="prefs">
+      <div><label class="slowlbl" for="slow">Slow motion</label><button type="button" id="slow" class="sc-switch sc-inset-1" role="switch" aria-checked="false"></button><span class="slowbadge" id="slow-badge" aria-live="polite">1x</span></div>
+      <div><span class="sc-label">Mode</span>
+        <div class="sc-segmented sc-raised-1 mode" data-sc-single id="mode" role="group" aria-label="Mode">
+          <button type="button" value="dark" aria-pressed="true" aria-label="Dark" title="Dark"><span data-sc-icon="moon"></span></button><button type="button" value="light" aria-pressed="false" aria-label="Light" title="Light"><span data-sc-icon="sun"></span></button><button type="button" value="auto" aria-pressed="false" aria-label="Match system" title="Match system"><span data-sc-icon="monitor"></span></button>
+        </div></div>
+    </div>
+    <a class="sc-btn sc-btn--ghost sc-btn--sm cta" href="index.html"><span>All components</span></a>
+  </div>
+</header>
+<main class="page">
+  <div class="intro">
+    <h1 class="t-display">Motion lab</h1>
+    <p>Every moving part on one page, for reviewing motion. Turn on slow motion (or open this page with <code>?slow</code>) and everything runs ten times slower: the duration tokens are multiplied for CSS, and <code>SoftConsole.timeScale</code> is set to 10 for the springs. Interrupt anything halfway: press a second button mid-sweep, close a dialog while it opens, drag the jog wheel and let go.</p>
+  </div>
+  <div class="cards">
+    <article class="sc-panel sc-raised-2 card" id="m-gauge">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Gauge</h3></div>
+      <p class="summary">Re-targets from the needle's position, keeping its velocity.</p>
+      <div class="sc-root"><div class="stack" style="max-width:15rem">
+        <div data-sc-gauge="72" data-label="Cluster load" id="gauge"></div>
+        <div role="group" aria-label="Set cluster load" style="display:flex;gap:8px;justify-self:center" id="gauge-set"><button type="button" class="sc-btn sc-btn--sm" data-v="0"><span>0 %</span></button><button type="button" class="sc-btn sc-btn--sm" data-v="18"><span>18 %</span></button><button type="button" class="sc-btn sc-btn--sm" data-v="54"><span>54 %</span></button><button type="button" class="sc-btn sc-btn--sm" data-v="91"><span>91 %</span></button></div>
+      </div></div>
+    </article>
+    <article class="sc-panel sc-raised-2 card" id="m-meter">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Meter and count</h3></div>
+      <p class="summary">A new <code>--p</code> moves the bar; a count carries on from the number on screen.</p>
+      <div class="sc-root"><div class="stack">
+        <div class="sc-rails">
+          <div class="sc-rail"><span class="sc-led sc-led--ok"></span><span class="sc-rail__name">12 V main</span><span class="sc-rail__value">load</span><span class="sc-meter sc-inset-1"><i style="--p:62%;--c:var(--ok)"></i></span></div>
+          <div class="sc-rail"><span class="sc-led sc-led--warn"></span><span class="sc-rail__name">PSU B</span><span class="sc-rail__value">load</span><span class="sc-meter sc-inset-1"><i style="--p:91%;--c:var(--warn)"></i></span></div>
+        </div>
+        <div class="row"><button type="button" class="sc-btn sc-btn--sm" id="meter-low"><span>Low</span></button><button type="button" class="sc-btn sc-btn--sm" id="meter-high"><span>High</span></button></div>
+        <div class="sc-kpi sc-raised-2" style="max-width:15rem"><div class="sc-kpi__top"><span class="sc-label">Requests / s</span></div><div class="sc-kpi__value"><span data-sc-count="12480" id="count">12,480</span></div></div>
+        <div class="row"><button type="button" class="sc-btn sc-btn--sm" id="count-a"><span>800</span></button><button type="button" class="sc-btn sc-btn--sm" id="count-b"><span>12,480</span></button><button type="button" class="sc-btn sc-btn--sm" id="count-c"><span>48,200</span></button></div>
+      </div></div>
+    </article>
+    <article class="sc-panel sc-raised-2 card" id="m-jog">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Jog wheel</h3></div>
+      <p class="summary">Flick it: it coasts, snaps and rubber-bands at the ends.</p>
+      <div class="sc-root"><div class="stack">
+        <div class="sc-display sc-display--setpoint sc-raised-2"><div class="sc-display__glass">
+          <div class="sc-display__top"><span>Alarm at</span><span>Armed</span></div>
+          <div class="sc-display__row"><div id="thr"></div><span class="sc-display__unit">°C</span></div>
+        </div></div>
+        <div class="sc-jog-row">
+          <button type="button" class="sc-btn sc-ibtn sc-btn--sm" aria-label="Lower threshold" data-step="-1"><span data-sc-icon="minus"></span></button>
+          <div class="sc-jog sc-raised-1" id="jog" data-sc-jog data-min="40" data-max="95" data-value="78" data-display="#thr" data-unit="degrees Celsius" aria-label="Alarm threshold"><div class="sc-jog__ridges"></div></div>
+          <button type="button" class="sc-btn sc-ibtn sc-btn--sm" aria-label="Raise threshold" data-step="1"><span data-sc-icon="plus"></span></button>
+        </div>
+      </div></div>
+    </article>
+    <article class="sc-panel sc-raised-2 card" id="m-toggles">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Switch, segments, select</h3></div>
+      <p class="summary">Press, drag the knob, change selection, open the list.</p>
+      <div class="sc-root"><div class="stack">
+        <div class="sc-switch-row"><label for="sw-a">Auto-scale</label><button type="button" id="sw-a" class="sc-switch sc-inset-1" role="switch" aria-checked="true"></button></div>
+        <div class="sc-switch-row"><label for="sw-b">Maintenance mode</label><button type="button" id="sw-b" class="sc-switch sc-inset-1" role="switch" aria-checked="false"></button></div>
+        <div class="sc-segmented sc-raised-1" data-sc-single role="group" aria-label="Range" style="justify-self:start"><button type="button" value="1h" aria-pressed="false">1h</button><button type="button" value="24h" aria-pressed="true">24h</button><button type="button" value="7d" aria-pressed="false">7d</button><button type="button" value="30d" aria-pressed="false">30d</button></div>
+        <div class="sc-field sc-inset-1"><select id="region" aria-label="Region"><option>eu-central · Frankfurt</option><option selected>us-east · Virginia</option><option>ap-south · Mumbai</option><option>sa-east · São Paulo</option></select><span data-sc-icon="chevron"></span></div>
+      </div></div>
+    </article>
+    <article class="sc-panel sc-raised-2 card" id="m-overlays">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Dialog and lightbox</h3></div>
+      <p class="summary">Both rise in and sink out the same way; the lightbox grows from its thumbnail. Close either one halfway through opening.</p>
+      <div class="sc-root"><div class="stack" style="max-width:20rem">
+        <button type="button" class="sc-btn sc-btn--danger" data-sc-dialog="#demo-dialog" style="justify-self:start"><span>Stop service…</span></button>
+        <button type="button" class="sc-frame" data-sc-dialog="#demo-photo" aria-label="Open CAM 04"><img src="media/cam04.jpg" alt="Camera 4: the aisle of row C in hall B"></button>
+      </div></div>
+    </article>
+    <article class="sc-panel sc-raised-2 card" id="m-toast">
+      <div class="sc-panel__head"><h3 class="sc-panel__title">Toast with Undo</h3></div>
+      <p class="summary">Rises from below; a new toast replaces the one showing. Hover it to hold it.</p>
+      <div class="sc-root"><div class="row">
+        <button type="button" class="sc-btn" id="toast-archive"><span>Archive node</span></button>
+        <button type="button" class="sc-btn" id="toast-plain"><span>Applied</span></button>
+      </div></div>
+    </article>
+  </div>
+</main>
+<div class="sc-scrim" id="demo-dialog" hidden>
+  <section class="sc-dialog sc-raised-3" role="dialog" aria-modal="true" aria-labelledby="demo-dialog-title">
+    <div class="sc-dialog__head"><h4 class="sc-dialog__title" id="demo-dialog-title">Stop service?</h4><button type="button" class="sc-btn sc-ibtn sc-btn--sm sc-btn--ghost" aria-label="Close" data-sc-close><span data-sc-icon="close"></span></button></div>
+    <p>Monitoring stops. Existing broker orders and positions persist.</p>
+    <div class="sc-dialog__actions"><button type="button" class="sc-btn sc-btn--ghost" data-sc-close><span>Cancel</span></button><button type="button" class="sc-btn sc-btn--danger" data-sc-close><span>Stop service</span></button></div>
+  </section>
+</div>
+<div class="sc-scrim" id="demo-photo" hidden>
+  <section class="sc-lightbox sc-raised-3" role="dialog" aria-modal="true" aria-labelledby="demo-photo-title">
+    <div class="sc-lightbox__head"><h4 class="sc-lightbox__title" id="demo-photo-title">CAM 04 · hall B, row C</h4><button type="button" class="sc-btn sc-btn--ghost" aria-label="Close" data-sc-close><span data-sc-icon="close"></span></button></div>
+    <div class="sc-frame"><img src="media/cam04.jpg" alt="Camera 4: the aisle of row C in hall B"></div>
+  </section>
+</div>
+<script>
+SoftConsole.init(document);
+document.getElementById('mode').addEventListener('sc-change', function (e) { SoftConsole.setMode(e.detail.value); });
+
+/* slow motion: the duration tokens times 10 for CSS, SoftConsole.timeScale for the springs */
+var SLOW = 10, DUR = ['--dur-press-in', '--dur-press', '--dur-ui', '--dur-value', '--dur-enter', '--dur-fade', '--dur-spring'], baseDur = null;
+function setSlow(on) {
+  var root = document.documentElement, cs = getComputedStyle(root);
+  if (!baseDur) { baseDur = {}; DUR.forEach(function (k) { baseDur[k] = parseFloat(cs.getPropertyValue(k)); }); } // read once, before any override
+  DUR.forEach(function (k) { if (on) root.style.setProperty(k, baseDur[k] * SLOW + 'ms'); else root.style.removeProperty(k); });
+  SoftConsole.timeScale = on ? SLOW : 1;
+  document.getElementById('slow').setAttribute('aria-checked', String(on));
+  document.getElementById('slow-badge').textContent = on ? SLOW + 'x slower' : '1x';
+}
+document.getElementById('slow').addEventListener('click', function () { setSlow(this.getAttribute('aria-checked') === 'true'); }); // runs after the switch has flipped itself
+if (/[?&]slow\b/.test(location.search)) setSlow(true);
+
+/* gauge: every press re-targets from where the needle is */
+document.getElementById('gauge-set').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) document.getElementById('gauge').scGauge.set(+b.dataset.v); });
+/* meters and count */
+function shift(p) { Array.prototype.forEach.call(document.querySelectorAll('#m-meter .sc-meter > i'), function (bar, i) { bar.style.setProperty('--p', (p + i * 8) + '%'); }); }
+document.getElementById('meter-low').addEventListener('click', function () { shift(12); });
+document.getElementById('meter-high').addEventListener('click', function () { shift(84); });
+[['count-a', 800], ['count-b', 12480], ['count-c', 48200]].forEach(function (c) { document.getElementById(c[0]).addEventListener('click', function () { SoftConsole.countUp(document.getElementById('count'), c[1]); }); });
+/* jog steps */
+document.querySelectorAll('[data-step]').forEach(function (b) {
+  b.addEventListener('click', function () { document.getElementById('jog').dispatchEvent(new KeyboardEvent('keydown', { key: b.dataset.step > 0 ? 'ArrowUp' : 'ArrowDown' })); });
+});
+/* toast: Undo instead of a confirm dialog */
+document.getElementById('toast-archive').addEventListener('click', function () {
+  SoftConsole.toast('Node archived', { action: { label: 'Undo', onAction: function () { SoftConsole.toast('Edge-12 restored'); } } });
+});
+document.getElementById('toast-plain').addEventListener('click', function () { SoftConsole.toast('Applied to server'); });
+</script>
+</body>
+</html>
